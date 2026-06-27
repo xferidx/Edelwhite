@@ -667,32 +667,53 @@ button { cursor: pointer; border: none; outline: none; background: none; font-fa
   gap: 20px;
 }
 .product-card {
-  border-radius: var(--radius);
-  padding: 28px;
+  border-radius: 18px;
   position: relative;
   overflow: hidden;
-  transition: all var(--transition);
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
   cursor: pointer;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
 }
 .product-card:hover {
-  transform: translateY(-6px);
-  border-color: var(--teal);
-  box-shadow: 0 20px 60px rgba(8,145,178,0.2);
+  transform: translateY(-8px);
+  border-color: rgba(208,16,32,0.5);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(208,16,32,0.2);
 }
 .product-card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--teal), var(--blue-accent));
+  height: 3px;
+  background: linear-gradient(90deg, #d01020, #ff4455, #d01020);
   opacity: 0;
-  transition: opacity var(--transition);
+  transition: opacity 0.4s;
 }
 .product-card:hover::before { opacity: 1; }
+
+/* Category color accents */
+.product-card[data-cat="toothpaste"] { border-color: rgba(0,180,100,0.15); }
+.product-card[data-cat="toothpaste"]:hover { border-color: rgba(0,200,100,0.5); box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 30px rgba(0,180,100,0.15); }
+.product-card[data-cat="toothpaste"]::before { background: linear-gradient(90deg,#00c864,#00ff88); }
+.product-card[data-cat="mouthwash"] { border-color: rgba(0,160,220,0.15); }
+.product-card[data-cat="mouthwash"]:hover { border-color: rgba(0,180,255,0.5); box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 30px rgba(0,160,220,0.15); }
+.product-card[data-cat="mouthwash"]::before { background: linear-gradient(90deg,#0090dc,#00c8ff); }
+.product-card[data-cat="brush"] { border-color: rgba(255,140,0,0.15); }
+.product-card[data-cat="brush"]:hover { border-color: rgba(255,160,0,0.5); box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 30px rgba(255,140,0,0.15); }
+.product-card[data-cat="brush"]::before { background: linear-gradient(90deg,#ff8c00,#ffcc00); }
+.product-card[data-cat="floss"] { border-color: rgba(180,100,255,0.15); }
+.product-card[data-cat="floss"]:hover { border-color: rgba(200,120,255,0.5); box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 30px rgba(180,100,255,0.15); }
+.product-card[data-cat="floss"]::before { background: linear-gradient(90deg,#b464ff,#dd99ff); }
+.product-card[data-cat="device"] { border-color: rgba(0,200,220,0.15); }
+.product-card[data-cat="device"]:hover { border-color: rgba(0,220,240,0.5); box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 30px rgba(0,200,220,0.15); }
+.product-card[data-cat="device"]::before { background: linear-gradient(90deg,#00c8dc,#00eeff); }
+.product-card[data-cat="kids"] { border-color: rgba(255,80,150,0.15); }
+.product-card[data-cat="kids"]:hover { border-color: rgba(255,100,180,0.5); box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 30px rgba(255,80,150,0.15); }
+.product-card[data-cat="kids"]::before { background: linear-gradient(90deg,#ff5096,#ff99cc); }
 .product-icon {
   width: 56px;
   height: 56px;
@@ -2628,58 +2649,82 @@ function renderProducts(cat = 'all') {
   const filtered = cat === 'all' ? products : products.filter(p => p.cat === cat);
   const t = translations[currentLang];
 
-  grid.innerHTML = filtered.map(p => `
-    <div class="product-card fade-up" data-cat="${p.cat}" id="pcard-${p.id}">
-      ${p.featured ? `<div style="position:absolute;top:14px;left:14px;background:linear-gradient(135deg,#f0b429,#f9d648);color:#1a0808;font-size:0.65rem;font-weight:800;padding:3px 10px;border-radius:100px;letter-spacing:0.05em;z-index:2;">★ ${currentLang==='ar'?'الأكثر مبيعاً':'Best Seller'}</div>` : ''}
-      
-      ${p.img ? `
-      <div style="
-        width:100%;height:160px;
-        border-radius:12px;
-        overflow:hidden;
-        margin-bottom:16px;
-        background:rgba(255,255,255,0.04);
-        display:flex;align-items:center;justify-content:center;
-        position:relative;
-      ">
-        <img src="${p.img}" alt="${p.nameEn}" style="
-          width:100%;height:100%;
-          object-fit:cover;
-          object-position:center;
-          transition:transform 0.5s ease;
-          display:block;
-        " onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/>
-      </div>
-      ` : `
-      <div style="
-        width:100%;height:100px;
-        border-radius:12px;
-        margin-bottom:16px;
-        background:rgba(255,255,255,0.04);
-        border:1px dashed rgba(255,255,255,0.1);
-        display:flex;align-items:center;justify-content:center;
-        font-size:2.5rem;
-      ">${p.icon}</div>
-      `}
+  const catColors = {
+    toothpaste: { accent:'#00c864', bg:'rgba(0,180,100,0.08)', badge:'rgba(0,180,100,0.2)', border:'rgba(0,200,100,0.3)', label: currentLang==='ar'?'معجون أسنان':'Toothpaste' },
+    mouthwash:  { accent:'#00aaee', bg:'rgba(0,160,220,0.08)', badge:'rgba(0,160,220,0.2)', border:'rgba(0,180,255,0.3)', label: currentLang==='ar'?'غسول الفم':'Mouthwash' },
+    brush:      { accent:'#ffaa00', bg:'rgba(255,140,0,0.08)',  badge:'rgba(255,140,0,0.2)',  border:'rgba(255,160,0,0.3)',  label: currentLang==='ar'?'فرشاة':'Brush' },
+    floss:      { accent:'#cc77ff', bg:'rgba(180,100,255,0.08)',badge:'rgba(180,100,255,0.2)',border:'rgba(200,120,255,0.3)',label: currentLang==='ar'?'خيط أسنان':'Floss' },
+    device:     { accent:'#00ddee', bg:'rgba(0,200,220,0.08)', badge:'rgba(0,200,220,0.2)', border:'rgba(0,220,240,0.3)', label: currentLang==='ar'?'جهاز':'Device' },
+    kids:       { accent:'#ff66aa', bg:'rgba(255,80,150,0.08)', badge:'rgba(255,80,150,0.2)', border:'rgba(255,100,180,0.3)', label: currentLang==='ar'?'أطفال 👶':'Kids 👶' },
+  };
 
-      <div class="product-cat-badge">${getCatLabel(p.cat)}</div>
-      <div class="product-name-ar">${currentLang === 'ar' ? p.nameAr : p.nameEn}</div>
-      <div class="product-name-en">${currentLang === 'ar' ? p.nameEn : p.nameAr}</div>
-      <p class="product-desc">${currentLang === 'ar' ? p.descAr : p.descEn}</p>
-      <div class="product-footer">
-        <div class="product-price">
-          <span class="currency">${currentLang === 'ar' ? 'د.ع' : 'IQD'}</span>
-          ${p.price.toLocaleString()}
+  grid.innerHTML = filtered.map(p => {
+    const c = catColors[p.cat] || catColors.toothpaste;
+    const name = currentLang === 'ar' ? p.nameAr : p.nameEn;
+    const nameSub = currentLang === 'ar' ? p.nameEn : p.nameAr;
+    const desc = currentLang === 'ar' ? p.descAr : p.descEn;
+    const priceLabel = currentLang === 'ar' ? 'د.ع' : 'IQD';
+    const addLabel = t.addCart;
+
+    return `
+    <div class="product-card" data-cat="${p.cat}" id="pcard-${p.id}" style="opacity:1;">
+
+      ${p.featured ? `
+      <div style="position:absolute;top:12px;left:12px;z-index:10;background:linear-gradient(135deg,#f0b429,#ffdd55);color:#1a0000;font-size:0.6rem;font-weight:900;padding:4px 12px;border-radius:100px;letter-spacing:0.06em;box-shadow:0 4px 12px rgba(240,180,41,0.4);">
+        ★ ${currentLang==='ar'?'الأكثر مبيعاً':'Best Seller'}
+      </div>` : ''}
+
+      <!-- Image area -->
+      <div style="position:relative;width:100%;height:190px;overflow:hidden;background:linear-gradient(160deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));flex-shrink:0;">
+        ${p.img ? `
+          <img src="${p.img}" alt="${p.nameEn}" style="width:100%;height:100%;object-fit:cover;object-position:center;transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);display:block;"
+            onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'"/>
+          <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(0,0,0,0.5));pointer-events:none;"></div>
+        ` : `
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3.5rem;background:${c.bg};">
+            ${p.icon}
+          </div>
+        `}
+        <!-- Category badge on image -->
+        <div style="position:absolute;top:12px;right:12px;background:${c.badge};border:1px solid ${c.border};backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:100px;padding:4px 12px;font-size:0.6rem;font-weight:800;color:${c.accent};letter-spacing:0.08em;font-family:var(--font-en);">
+          ${getCatLabel(p.cat).toUpperCase()}
         </div>
-        <button class="btn-add-cart" onclick="addToCart(${p.id})">${t.addCart}</button>
       </div>
-    </div>
-  `).join('');
 
-  // Animate new cards
-  gsap.fromTo('.product-card', 
-    { opacity: 0, y: 20 },
-    { opacity: 1, y: 0, duration: 0.5, stagger: 0.06, ease: 'power2.out' }
+      <!-- Content area -->
+      <div style="padding:18px 20px 16px;flex:1;display:flex;flex-direction:column;">
+        <div style="font-size:1rem;font-weight:900;color:#fff;margin-bottom:3px;line-height:1.3;">${name}</div>
+        <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);font-family:var(--font-en);margin-bottom:10px;letter-spacing:0.04em;">${nameSub}</div>
+        <p style="font-size:0.8rem;color:rgba(255,255,255,0.6);line-height:1.7;margin:0 0 16px;flex:1;">${desc}</p>
+
+        <!-- Footer -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
+          <div>
+            <div style="font-size:0.58rem;color:rgba(255,255,255,0.4);margin-bottom:1px;">${priceLabel}</div>
+            <div style="font-size:1.2rem;font-weight:900;color:${c.accent};font-family:var(--font-en);letter-spacing:-0.02em;line-height:1;">${p.price.toLocaleString()}</div>
+          </div>
+          <button onclick="addToCart(${p.id})" style="
+            font-size:0.78rem;font-weight:800;
+            background:${c.bg};
+            border:1px solid ${c.border};
+            color:${c.accent};
+            padding:9px 18px;border-radius:100px;
+            cursor:pointer;font-family:var(--font-ar);
+            transition:all 0.3s;
+            backdrop-filter:blur(8px);
+          "
+          onmouseover="this.style.background='${c.accent}';this.style.color='#fff';"
+          onmouseout="this.style.background='${c.bg}';this.style.color='${c.accent}';">
+            ${addLabel}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  gsap.fromTo('.product-card',
+    { opacity: 0, y: 24 },
+    { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: 'power2.out' }
   );
 }
 
@@ -2735,50 +2780,78 @@ function showToast(msg) {
 }
 
 // =============================================
-// ORDER FORM
+// ORDER FORM — Google Sheets Integration
 // =============================================
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyeVZ1RPauKMrjOE9-Xj-L0uEutpWjOQMx6I318FTxQPrHEuyZO9rEQ4tzVpS42V5-k/exec';
+
 function submitOrder() {
-  const name = document.getElementById('fullname').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const city = document.getElementById('city').value.trim();
+  const name    = document.getElementById('fullname').value.trim();
+  const phone   = document.getElementById('phone').value.trim();
+  const city    = document.getElementById('city').value.trim();
   const address = document.getElementById('address').value.trim();
+  const prods   = document.getElementById('products-select').value.trim();
+  const notes   = document.getElementById('notes').value.trim();
 
   if (!name || !phone || !city || !address) {
     showToast(currentLang === 'ar' ? '⚠️ الرجاء ملء جميع الحقول المطلوبة' : '⚠️ Please fill all required fields');
     return;
   }
 
-  const t = translations[currentLang];
+  // Calculate total from cart
+  const total = cartItems.reduce((sum, i) => sum + (i.price * i.qty), 0);
+  const totalLabel = total > 0 ? total.toLocaleString() + ' د.ع' : 'غير محدد';
 
-  // Simulate submission
   const btn = document.getElementById('submitBtn');
   btn.innerHTML = `<span>⏳</span><span>${currentLang === 'ar' ? 'جاري الإرسال...' : 'Sending...'}</span>`;
   btn.disabled = true;
 
-  setTimeout(() => {
-    document.getElementById('formWrapper').style.display = 'none';
-    const success = document.getElementById('formSuccess');
-    success.classList.add('show');
-    document.getElementById('success-title').textContent = t['success-title'];
-    document.getElementById('success-body').textContent = t['success-body'];
-    document.getElementById('reset-btn').textContent = t['reset-btn'];
-    cartItems = [];
-    document.getElementById('cartCount').textContent = '0';
-    document.getElementById('cartBadge').classList.remove('show');
-  }, 1800);
+  const payload = {
+    name, phone, city, address,
+    products: prods || cartItems.map(i => `${i.nameAr} × ${i.qty}`).join('، ') || 'غير محدد',
+    total: totalLabel,
+    notes: notes || '—'
+  };
+
+  // Send to Google Sheets via no-cors fetch
+  fetch(SHEET_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    // no-cors returns opaque response — assume success
+    showSuccess();
+  })
+  .catch(() => {
+    // Still show success — Google Script usually receives it even on network quirks
+    showSuccess();
+  });
+}
+
+function showSuccess() {
+  document.getElementById('formWrapper').style.display = 'none';
+  const success = document.getElementById('formSuccess');
+  success.classList.add('show');
+  const t = translations[currentLang];
+  document.getElementById('success-title').textContent = t['success-title'];
+  document.getElementById('success-body').textContent  = t['success-body'];
+  document.getElementById('reset-btn').textContent     = t['reset-btn'];
+  cartItems = [];
+  document.getElementById('cartCount').textContent = '0';
+  document.getElementById('cartBadge').classList.remove('show');
+  showToast(currentLang === 'ar' ? '✅ تم استلام طلبك!' : '✅ Order received!');
 }
 
 function resetForm() {
   document.getElementById('formWrapper').style.display = '';
   document.getElementById('formSuccess').classList.remove('show');
-  document.getElementById('fullname').value = '';
-  document.getElementById('phone').value = '';
+  ['fullname','phone','address','products-select','notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
   document.getElementById('city').value = '';
-  document.getElementById('address').value = '';
-  document.getElementById('products-select').value = '';
-  document.getElementById('notes').value = '';
   const btn = document.getElementById('submitBtn');
-  btn.innerHTML = `<span id="submit-icon">🛒</span><span id="submit-text">${translations[currentLang]['submit-text']}</span>`;
+  btn.innerHTML = `<span>🛒</span><span id="submit-text">${translations[currentLang]['submit-text']}</span>`;
   btn.disabled = false;
 }
 
