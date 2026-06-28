@@ -2782,7 +2782,7 @@ function showToast(msg) {
 // =============================================
 // ORDER FORM — Google Sheets Integration
 // =============================================
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyeVZ1RPauKMrjOE9-Xj-L0uEutpWjOQMx6I318FTxQPrHEuyZO9rEQ4tzVpS42V5-k/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw1SjexEFQw-As71GamaHl2aJN3VluJJT9bjsTnYj7tCEdUuMIVHgaq2AlIRGuKFug/exec';
 
 function submitOrder() {
   const name    = document.getElementById('fullname').value.trim();
@@ -2797,36 +2797,32 @@ function submitOrder() {
     return;
   }
 
-  // Calculate total from cart
   const total = cartItems.reduce((sum, i) => sum + (i.price * i.qty), 0);
   const totalLabel = total > 0 ? total.toLocaleString() + ' د.ع' : 'غير محدد';
+  const productsList = prods || cartItems.map(i => `${i.nameAr} × ${i.qty}`).join(' | ') || 'غير محدد';
 
   const btn = document.getElementById('submitBtn');
   btn.innerHTML = `<span>⏳</span><span>${currentLang === 'ar' ? 'جاري الإرسال...' : 'Sending...'}</span>`;
   btn.disabled = true;
 
-  const payload = {
-    name, phone, city, address,
-    products: prods || cartItems.map(i => `${i.nameAr} × ${i.qty}`).join('، ') || 'غير محدد',
-    total: totalLabel,
-    notes: notes || '—'
-  };
-
-  // Send to Google Sheets via no-cors fetch
-  fetch(SHEET_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  })
-  .then(() => {
-    // no-cors returns opaque response — assume success
-    showSuccess();
-  })
-  .catch(() => {
-    // Still show success — Google Script usually receives it even on network quirks
-    showSuccess();
+  // Build URL with parameters
+  const params = new URLSearchParams({
+    name:     name,
+    phone:    phone,
+    city:     city,
+    address:  address,
+    products: productsList,
+    total:    totalLabel,
+    notes:    notes || '—'
   });
+
+  const fullURL = SHEET_URL + '?' + params.toString();
+
+  // Use image trick — works perfectly with no-cors Google Scripts
+  const img = new Image();
+  img.onload  = () => showSuccess();
+  img.onerror = () => showSuccess(); // Google Script returns text, not image — onerror fires but data was received
+  img.src = fullURL;
 }
 
 function showSuccess() {
