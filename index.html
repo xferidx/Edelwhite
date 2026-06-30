@@ -1,988 +1,396 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عيادة الدكتور فريد مؤيد السعيد لطب الأسنان</title>
-    <!-- Tailwind CSS -->
+    <title>بيت المرجان | Beit Al Murjan - الوكيل الحصري لشركة Edel+White</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Tajawal for Arabic) -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Tajawal', 'sans-serif'],
-                    },
                     colors: {
-                        clinic: {
-                            light: '#dbeafe', // blue-100
-                            DEFAULT: '#2563eb', // blue-600
-                            dark: '#1e40af', // blue-800
-                        },
-                        gold: {
-                            light: '#fef08a',
-                            DEFAULT: '#eab308',
-                            dark: '#a16207',
+                        swiss: {
+                            red: '#E30A17', // Exact Swiss Flag Red
+                            dark: '#B30812',
+                            light: '#FF3B47'
                         }
+                    },
+                    fontFamily: {
+                        tajawal: ['Tajawal', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
-    
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; overflow-x: hidden;}
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+        body { font-family: 'Tajawal', sans-serif; }
         
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #E30A17; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #B30812; }
+
+        /* Scroll reveal animation classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        /* Modal backdrop blur */
+        .modal-backdrop {
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
-
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .selected-btn {
-            background-color: #2563eb !important;
-            color: white !important;
-            border-color: #2563eb !important;
-            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.39);
-        }
-        
-        .disabled-time {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background-color: #e2e8f0;
-            color: #94a3b8;
-            border-color: #cbd5e1;
-        }
-
-        /* Hero Image Overlay */
-        .hero-overlay {
-            background: linear-gradient(to right, rgba(30, 64, 175, 0.9), rgba(37, 99, 235, 0.7));
-        }
-
-        /* Before/After Slider Styles */
-        .ba-slider {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-            border-radius: 1rem;
-            aspect-ratio: 16/9;
-            background: #e2e8f0;
-        }
-        .ba-slider img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .ba-after {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
-        .ba-before {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 50%; /* Initial split */
-            overflow: hidden;
-            border-left: 3px solid white;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
-            /* Important: the inner image needs to stay fixed relative to container */
-        }
-        .ba-before img {
-            position: absolute;
-            top: 0;
-            right: 0;
-            height: 100%;
-            width: auto;
-            max-width: none;
-        }
-        .ba-handle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #2563eb;
-            cursor: ew-resize;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            z-index: 10;
+        /* Swiss Cross Background pattern (subtle) */
+        .bg-swiss-pattern {
+            background-color: #E30A17;
+            background-image: radial-gradient(white 15%, transparent 16%), radial-gradient(white 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            background-blend-mode: overlay;
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-gray-50 text-gray-800 overflow-x-hidden">
 
-    <!-- Sticky Glass Navigation -->
-    <nav class="glass-nav sticky top-0 z-50 transition-all duration-300 shadow-sm">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center max-w-5xl">
+    <!-- Navbar -->
+    <header class="bg-white shadow-md fixed w-full top-0 z-40 transition-all duration-300" id="navbar">
+        <nav class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-clinic to-clinic-dark text-white p-2 rounded-xl flex items-center justify-center h-12 w-12 shadow-lg">
-                    <i class="fa-solid fa-tooth text-2xl"></i>
+                <!-- Swiss Cross Icon inside Logo -->
+                <div class="w-10 h-10 bg-swiss-red rounded flex items-center justify-center text-white font-bold text-xl relative">
+                    <div class="w-6 h-2 bg-white absolute"></div>
+                    <div class="h-6 w-2 bg-white absolute"></div>
                 </div>
-                <div>
-                    <h1 class="text-lg md:text-xl font-extrabold text-slate-800 tracking-tight">عيادة د. فريد مؤيد السعيد</h1>
-                    <p class="text-clinic text-xs font-bold">لصحة وتجميل الأسنان</p>
-                </div>
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">بيت المرجان</h1>
             </div>
-            <!-- Manager Login Trigger -->
-            <button onclick="openSecretaryModal()" class="text-slate-400 hover:text-clinic transition-colors p-2 bg-slate-50 rounded-full hover:bg-clinic-light" title="الإدارة">
-                <i class="fa-solid fa-user-lock text-lg"></i>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Cinematic Hero Section -->
-    <header class="relative bg-slate-900 text-white overflow-hidden">
-        <!-- Background Image (High Quality Dental Clinic) -->
-        <div class="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=2070&auto=format&fit=crop" alt="Clinic Background" class="w-full h-full object-cover opacity-60">
-        </div>
-        <div class="absolute inset-0 hero-overlay z-0"></div>
-        
-        <div class="container mx-auto px-4 py-20 md:py-32 relative z-10 max-w-4xl text-center">
-            <span class="inline-block py-1 px-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-sm font-bold mb-4 animate-pulse">
-                <i class="fa-solid fa-star text-gold-light mr-1"></i> الرعاية المثالية لأسنانك
-            </span>
-            <h2 class="text-4xl md:text-6xl font-black mb-6 leading-tight drop-shadow-lg">ابتسامتك تستحق <br/><span class="text-gold-light">الأفضل دائماً</span></h2>
-            <p class="text-lg md:text-xl text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed">أحدث التقنيات العالمية في زراعة وتجميل الأسنان، مع خيارات دفع مرنة تناسب الجميع لتستعيد ثقتك بابتسامتك.</p>
             
-            <button onclick="document.getElementById('booking-section').scrollIntoView({behavior: 'smooth'})" class="bg-white text-clinic font-bold text-lg px-8 py-4 rounded-full shadow-2xl hover:bg-clinic-light transition-all transform hover:-translate-y-1 hover:shadow-clinic/50">
-                <i class="fa-solid fa-calendar-check ml-2"></i> احجز موعدك الآن
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-8 space-x-reverse font-medium items-center">
+                <a href="#hero" class="text-gray-600 hover:text-swiss-red transition">الرئيسية</a>
+                <a href="#about" class="text-gray-600 hover:text-swiss-red transition">عن الشركة</a>
+                <a href="#products" class="text-gray-600 hover:text-swiss-red transition">المنتجات</a>
+                <a href="#contact" class="bg-swiss-red text-white px-6 py-2 rounded-full shadow-lg hover:bg-swiss-dark hover:shadow-xl transition transform hover:-translate-y-0.5">تواصل معنا</a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-gray-600 text-2xl focus:outline-none" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
             </button>
+        </nav>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl">
+            <div class="flex flex-col px-6 py-4 space-y-4 text-center">
+                <a href="#hero" class="text-gray-800 hover:text-swiss-red font-medium" onclick="toggleMobileMenu()">الرئيسية</a>
+                <a href="#about" class="text-gray-800 hover:text-swiss-red font-medium" onclick="toggleMobileMenu()">عن الشركة</a>
+                <a href="#products" class="text-gray-800 hover:text-swiss-red font-medium" onclick="toggleMobileMenu()">المنتجات</a>
+                <a href="#contact" class="text-swiss-red font-bold" onclick="toggleMobileMenu()">تواصل معنا</a>
+            </div>
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-10 flex-grow space-y-10 max-w-4xl -mt-10 relative z-20">
-
-        <!-- Quick Action Buttons -->
-        <section class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            <a href="tel:077818653825" class="bg-white hover:bg-clinic-light text-clinic shadow-lg rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all transform hover:-translate-y-1 border border-slate-100">
-                <div class="bg-blue-50 p-3 rounded-full mb-1"><i class="fa-solid fa-phone-volume text-2xl"></i></div>
-                <span class="text-xs font-bold text-center">اتصال 1</span>
-                <span class="text-sm font-black" dir="ltr">077818653825</span>
-            </a>
-            
-            <a href="tel:07758939998" class="bg-white hover:bg-clinic-light text-clinic shadow-lg rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all transform hover:-translate-y-1 border border-slate-100">
-                <div class="bg-blue-50 p-3 rounded-full mb-1"><i class="fa-solid fa-phone text-2xl"></i></div>
-                <span class="text-xs font-bold text-center">اتصال 2</span>
-                <span class="text-sm font-black" dir="ltr">07758939998</span>
-            </a>
-
-            <a href="https://wa.me/9647818653825" target="_blank" class="bg-white hover:bg-green-50 text-green-600 shadow-lg rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all transform hover:-translate-y-1 border border-slate-100">
-                <div class="bg-green-50 p-3 rounded-full mb-1"><i class="fa-brands fa-whatsapp text-3xl"></i></div>
-                <span class="text-sm font-black text-center mt-2">واتساب</span>
-            </a>
-
-            <a href="https://t.me/+9647818653825" target="_blank" class="bg-white hover:bg-sky-50 text-sky-500 shadow-lg rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all transform hover:-translate-y-1 border border-slate-100">
-                <div class="bg-sky-50 p-3 rounded-full mb-1"><i class="fa-brands fa-telegram text-3xl"></i></div>
-                <span class="text-sm font-black text-center mt-2">تلغرام</span>
-            </a>
-
-            <a href="https://maps.app.goo.gl/PMCV9rcQGc3XPrgN9?g_st=ac" target="_blank" class="bg-white hover:bg-red-50 text-red-500 shadow-lg rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all transform hover:-translate-y-1 border border-slate-100 col-span-2 sm:col-span-1 md:col-span-1">
-                <div class="bg-red-50 p-3 rounded-full mb-1"><i class="fa-solid fa-location-dot text-3xl"></i></div>
-                <span class="text-sm font-black text-center mt-2">الموقع</span>
-            </a>
-        </section>
-
-        <!-- Installment Banner -->
-        <section class="relative rounded-[2rem] p-8 overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-900 via-blue-900 to-blue-800 border border-indigo-400/30">
-            <!-- Glow Effects -->
-            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-yellow-400/20 blur-3xl animate-pulse"></div>
-            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-cyan-400/20 blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-
-            <div class="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
-                <!-- Text Content -->
-                <div class="text-center lg:text-right flex-1">
-                    <div class="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md mb-5 text-yellow-300 text-sm font-bold shadow-lg">
-                        <i class="fa-solid fa-credit-card"></i>
-                        تسهيلات مالية حصرية
-                    </div>
-                    <h2 class="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight leading-tight">
-                        ابتسم الآن.. <br class="hidden md:block" /> وادفع براحة عبر التقسيط
-                    </h2>
-                    <p class="text-indigo-100 text-sm md:text-base leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium">
-                        يتوفر لدينا نظام التقسيط المريح والميسر عبر أجهزة الدفع الإلكتروني (POS) لضمان حصولك على أفضل رعاية صحية وتجميلية لأسنانك دون أي قلق.
-                    </p>
-                </div>
-
-                <!-- Banks Logos / Cards -->
-                <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto justify-center">
-                    <!-- Bank 1: Rafidain -->
-                    <div class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 flex flex-col items-center gap-3 hover:bg-white/20 transition-all transform hover:-translate-y-2 shadow-xl flex-1 lg:flex-none lg:w-48 text-center group">
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-b from-white to-gray-200 flex items-center justify-center text-green-700 shadow-inner group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-landmark text-3xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-indigo-200 font-bold mb-1 uppercase tracking-wider">متاح لموظفي</p>
-                            <h3 class="text-xl font-black text-white">مصرف الرافدين</h3>
-                        </div>
-                    </div>
-
-                    <!-- Bank 2: Rasheed -->
-                    <div class="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 flex flex-col items-center gap-3 hover:bg-white/20 transition-all transform hover:-translate-y-2 shadow-xl flex-1 lg:flex-none lg:w-48 text-center group">
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-b from-white to-gray-200 flex items-center justify-center text-blue-700 shadow-inner group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-building-columns text-3xl"></i>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-indigo-200 font-bold mb-1 uppercase tracking-wider">متاح لموظفي</p>
-                            <h3 class="text-xl font-black text-white">مصرف الرشيد</h3>
-                        </div>
-                    </div>
+    <!-- Hero Section -->
+    <section id="hero" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-swiss-red text-white flex items-center min-h-[80vh]">
+        <!-- Decorative Background Circle -->
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-white opacity-5"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-white opacity-10"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="text-center lg:text-right reveal active">
+                <span class="inline-block py-1 px-3 rounded-full bg-white text-swiss-red font-bold text-sm mb-6 tracking-wide shadow-md">
+                    <i class="fa-solid fa-star mr-1"></i> الوكيل الحصري في العراق
+                </span>
+                <h2 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">الجودة السويسرية<br>لصحة أسنانك</h2>
+                <p class="text-xl md:text-2xl opacity-95 mb-10 leading-relaxed font-light">
+                    نقدم لكم في بيت المرجان منتجات <strong>Edel+White</strong> السويسرية الفاخرة، حيث يلتقي الابتكار العلمي بالطبيعة لعناية فموية استثنائية.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <a href="#products" class="bg-white text-swiss-red font-bold px-8 py-4 rounded-full shadow-xl hover:bg-gray-100 hover:shadow-2xl transition transform hover:-translate-y-1 text-center text-lg">
+                        اكتشف المنتجات
+                    </a>
+                    <a href="#contact" class="border-2 border-white text-white font-bold px-8 py-4 rounded-full hover:bg-white hover:text-swiss-red transition text-center text-lg">
+                        تواصل معنا
+                    </a>
                 </div>
             </div>
-        </section>
-
-        <!-- Waiting List Status -->
-        <section class="glass-panel rounded-2xl p-6 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner relative">
-                    <i class="fa-solid fa-users"></i>
-                    <span class="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full animate-ping"></span>
-                    <span class="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-                </div>
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800">المرضى في الانتظار الآن</h2>
-                    <p class="text-sm text-slate-500">يتم التحديث المباشر من العيادة</p>
-                </div>
+            <div class="hidden lg:flex justify-center relative reveal active" style="transition-delay: 0.2s;">
+                 <!-- Abstract representation of Swiss precision/tooth -->
+                 <div class="w-72 h-72 bg-white rounded-3xl rotate-12 absolute opacity-20 shadow-2xl"></div>
+                 <div class="w-72 h-72 bg-white rounded-3xl -rotate-6 relative z-10 shadow-2xl flex items-center justify-center p-8">
+                    <div class="text-center">
+                        <div class="text-swiss-red text-6xl mb-4"><i class="fa-solid fa-tooth"></i></div>
+                        <div class="text-gray-800 font-bold text-2xl">Edel+White</div>
+                        <div class="text-gray-500 text-sm">Switzerland</div>
+                    </div>
+                 </div>
             </div>
-            <div class="text-center bg-slate-50 px-6 py-2 rounded-xl border border-slate-100">
-                <span id="public-waiting-count" class="block text-3xl font-black text-clinic">0</span>
-            </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Booking Form -->
-        <section id="booking-section" class="glass-panel rounded-3xl p-6 md:p-8 shadow-lg border border-slate-200">
-            <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
-                <div class="bg-clinic-light text-clinic p-3 rounded-xl shadow-inner">
-                    <i class="fa-solid fa-calendar-check text-2xl"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-black text-slate-800">حجز موعد جديد</h2>
-                    <p class="text-slate-500 text-sm font-medium">اختر الوقت المناسب لك لتأكيد الحجز</p>
-                </div>
-            </div>
-            
-            <form id="booking-form" class="space-y-8">
-                <!-- User Details -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <label class="block text-sm font-bold text-slate-700 mb-2"><i class="fa-regular fa-user ml-1 text-clinic"></i> الاسم الكامل <span class="text-red-500">*</span></label>
-                        <input type="text" id="patient-name" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-clinic focus:border-transparent transition-all bg-white" placeholder="الاسم الثلاثي">
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                        <label class="block text-sm font-bold text-slate-700 mb-2"><i class="fa-solid fa-mobile-screen ml-1 text-clinic"></i> رقم الهاتف <span class="text-red-500">*</span></label>
-                        <input type="tel" id="patient-phone" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-clinic focus:border-transparent transition-all bg-white text-right" placeholder="07XXXXXXXXX" dir="ltr">
-                    </div>
-                </div>
-
-                <!-- Reasons as Buttons -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <label class="block text-sm font-bold text-slate-700 mb-3"><i class="fa-solid fa-stethoscope ml-1 text-clinic"></i> الغرض من الزيارة <span class="text-xs text-slate-400 font-normal">(يمكنك اختيار أكثر من خيار)</span> <span class="text-red-500">*</span></label>
-                    <div class="flex flex-wrap gap-2" id="reasons-container">
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="ألم أسنان">ألم أسنان</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="قلع / جراحة">قلع / جراحة</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="حشوة">حشوة</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="حشوة جذر">حشوة جذر</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm border-b-2 border-b-clinic text-clinic" data-value="زراعة أسنان"><i class="fa-solid fa-tooth mr-1"></i> زراعة أسنان</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="تنظيف وتلميع">تنظيف وتلميع</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="تقويم أسنان">تقويم أسنان</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="تركيبات / تيجان">تركيبات / تيجان</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="تبييض أسنان">تبييض أسنان</button>
-                        <button type="button" class="reason-btn px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 bg-white hover:bg-slate-100 transition-all shadow-sm" data-value="فحص دوري / استشارة">فحص واستشارة</button>
-                    </div>
-                </div>
-
-                <!-- Dates as Buttons (Horizontal Scroll) -->
-                <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-3"><i class="fa-regular fa-calendar-days ml-1 text-clinic"></i> اختر اليوم <span class="text-red-500">*</span></label>
-                    <div class="flex overflow-x-auto gap-3 pb-4 hide-scrollbar px-1" id="dates-container">
-                        <!-- Dates injected by JS -->
-                    </div>
-                </div>
-
-                <!-- Times as Buttons -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <div class="flex justify-between items-end mb-4">
-                        <label class="block text-sm font-bold text-slate-700"><i class="fa-regular fa-clock ml-1 text-clinic"></i> اختر الوقت (5م - 9م) <span class="text-red-500">*</span></label>
-                        <span class="text-xs font-bold text-clinic bg-clinic-light px-2 py-1 rounded-md">المدة 30 دقيقة</span>
-                    </div>
-                    <!-- Empty state before date selection -->
-                    <div id="times-empty-state" class="text-sm text-slate-500 p-8 border-2 border-dashed border-slate-300 rounded-xl text-center bg-white flex flex-col items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrow-up text-xl text-slate-300 animate-bounce"></i>
-                        الرجاء اختيار اليوم من الأعلى لعرض الأوقات المتاحة
-                    </div>
-                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 hidden" id="times-container">
-                        <!-- Times injected by JS -->
-                    </div>
-                </div>
-
-                <button type="button" onclick="submitBooking()" class="w-full bg-gradient-to-r from-clinic to-clinic-dark hover:from-clinic-dark hover:to-slate-800 text-white font-black text-lg py-5 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 flex justify-center items-center gap-3 mt-6 border-b-4 border-slate-900/20">
-                    <i class="fa-regular fa-calendar-check text-2xl"></i>
-                    تأكيد وحجز الموعد
-                </button>
-            </form>
-        </section>
-
-        <!-- Interactive Before & After Section -->
-        <section class="glass-panel rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
-            <div class="text-center mb-8">
-                <span class="text-clinic font-bold text-sm bg-clinic-light px-3 py-1 rounded-full mb-2 inline-block">نتائج حقيقية</span>
-                <h2 class="text-2xl font-black text-slate-800">تغيير يصنع الفارق</h2>
-                <p class="text-slate-500 text-sm mt-2">اسحب الشريط لرؤية الفرق بين قبل وبعد العلاج</p>
-            </div>
-            
-            <div class="max-w-2xl mx-auto">
-                <div class="ba-slider" id="ba-slider">
-                    <!-- After Image (Clean, white teeth) -->
-                    <img class="ba-after" src="https://i.ibb.co/35QTV1qJ/Screenshot-2026-06-30-013242.png" alt="After Treatment">
-                    
-                    <!-- Before Image Container (Yellowish/problematic simulation via CSS filter for demo if real image unavailable, using a slightly tinted version) -->
-                    <div class="ba-before" id="ba-before">
-                        <img src="https://i.ibb.co/TDs3fLf0/Screenshot-2026-06-30-013224.png" alt="Before Treatment" id="ba-before-img">
-                        <div class="absolute top-4 right-4 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm">قبل</div>
-                    </div>
-                    
-                    <!-- Handle -->
-                    <div class="ba-handle" id="ba-handle">
-                        <i class="fa-solid fa-left-right"></i>
-                    </div>
-
-                    <div class="absolute top-4 left-4 bg-clinic text-white text-xs font-bold px-2 py-1 rounded shadow-md z-0">بعد</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Instagram Videos Section -->
-        <section class="glass-panel rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
-            <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
-                <div class="flex items-center gap-3">
-                    <div class="bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 text-white p-3 rounded-xl shadow-lg">
-                        <i class="fa-brands fa-instagram text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-black text-slate-800">يوميات العيادة</h2>
-                        <p class="text-slate-500 text-sm">حالات وتفاصيل من داخل العيادة</p>
-                    </div>
-                </div>
-                <a href="https://www.instagram.com/dr.ferid.clinic/" target="_blank" class="hidden sm:flex text-sm font-bold text-pink-600 hover:text-pink-700 transition-colors items-center gap-1 bg-pink-50 px-3 py-2 rounded-lg">
-                    تابعنا للمزيد <i class="fa-solid fa-angle-left"></i>
-                </a>
-            </div>
-            
-            <!-- Grid container for 4 videos -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" dir="ltr">
-                <!-- Video 1 -->
-                <div class="w-full flex justify-center bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
-                    <iframe src="https://www.instagram.com/p/DYt1yTiivbF/embed/captioned/" class="w-full h-[600px] bg-white" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
-                </div>
-                <!-- Video 2 -->
-                <div class="w-full flex justify-center bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
-                    <iframe src="https://www.instagram.com/p/DZp6rxvCZHv/embed/captioned/" class="w-full h-[600px] bg-white" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
-                </div>
-                <!-- Video 3 -->
-                <div class="w-full flex justify-center bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
-                    <iframe src="https://www.instagram.com/p/CX-niGvqme7/embed/captioned/" class="w-full h-[600px] bg-white" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
-                </div>
-                <!-- Video 4 -->
-                <div class="w-full flex justify-center bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
-                    <iframe src="https://www.instagram.com/p/CunMmVMg1ba/embed/captioned/" class="w-full h-[600px] bg-white" frameborder="0" scrolling="no" allowtransparency="true"></iframe>
-                </div>
-            </div>
-        </section>
-
-        <!-- Clinic Location Section -->
-        <section class="glass-panel rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
-            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                <div class="bg-red-50 text-red-500 p-3 rounded-xl shadow-inner">
-                    <i class="fa-solid fa-map-location-dot text-2xl"></i>
-                </div>
-                <h2 class="text-xl font-black text-slate-800">موقع العيادة</h2>
-            </div>
-            
-            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-sm mb-6 flex items-start gap-4">
-                <i class="fa-solid fa-location-dot text-clinic text-2xl mt-1"></i>
-                <div>
-                    <h3 class="font-bold text-lg text-slate-800 mb-1">العنوان التفصيلي</h3>
-                    <p class="text-slate-600 leading-relaxed font-medium">شارع الاسكان، مجمع الرافدين، الطابق الثالث، قرب مجمع الفهد</p>
-                </div>
-            </div>
-
-            <div class="relative w-full h-72 rounded-2xl overflow-hidden border border-slate-200 shadow-inner mb-6 bg-slate-100">
-                <iframe 
-                    src="https://maps.google.com/maps?q=شارع+الاسكان+مجمع+الرافدين&hl=ar&z=15&output=embed" 
-                    width="100%" 
-                    height="100%" 
-                    style="border:0;" 
-                    allowfullscreen="" 
-                    loading="lazy" 
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="خريطة موقع العيادة">
-                </iframe>
-            </div>
-
-            <a href="https://maps.app.goo.gl/PMCV9rcQGc3XPrgN9?g_st=ac" target="_blank" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold text-lg py-5 rounded-2xl shadow-xl transition-all transform hover:-translate-y-1 flex justify-center items-center gap-3">
-                <i class="fa-solid fa-location-arrow text-xl"></i>
-                افتح المسار في تطبيق خرائط جوجل
-            </a>
-        </section>
-
-        <!-- Medical Partnerships -->
-        <section class="text-center py-8">
-            <h3 class="text-sm font-bold text-slate-400 mb-6 uppercase tracking-wider">شركاء النجاح في تقديم الرعاية</h3>
-            <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70 hover:opacity-100 transition-opacity">
-                <!-- Generic placeholder or text styling for brands -->
-                <div class="flex items-center gap-2 font-black text-2xl text-slate-600">
-                    <i class="fa-solid fa-shield-halved text-clinic"></i> BioMin
+    <!-- About / Founder Section -->
+    <section id="about" class="py-24 bg-white relative">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="bg-gray-50 rounded-3xl p-10 md:p-16 shadow-lg border-t-4 border-swiss-red relative reveal">
+                <!-- Quote Icon -->
+                <div class="absolute top-0 right-10 -mt-6 bg-swiss-red text-white w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-lg z-10">
+                    <i class="fa-solid fa-quote-right"></i>
                 </div>
                 
-                <!-- Edelwhite (Clickable link as requested) -->
-                <a href="https://xferidx.github.io/Edelwhite/" target="_blank" class="flex flex-col items-center group transition-transform hover:scale-105">
-                    <div class="text-3xl font-black tracking-tighter text-slate-800 group-hover:text-clinic transition-colors flex items-center gap-1">
-                        <span class="text-red-500">+</span>edelwhite
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10 border-b border-gray-200 pb-8">
+                    <img src="founder.png" alt="Thomas Flatt - Founder of Edel+White" class="w-32 h-32 rounded-full object-cover shadow-lg border-4 border-white">
+                    <div class="text-center sm:text-right sm:mt-5">
+                        <h3 class="text-3xl font-bold text-gray-900 mb-2">
+                            رسالة المؤسس
+                        </h3>
+                        <p class="text-swiss-red font-medium">Thomas Flatt - مؤسس شركة Edel+White السويسرية</p>
                     </div>
-                    <span class="text-[10px] tracking-widest text-slate-500 uppercase">Swiss Dental Care</span>
-                </a>
-
-                <div class="flex items-center gap-2 font-black text-2xl text-slate-600">
-                    <i class="fa-solid fa-tooth text-sky-500"></i> EMS
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="text-lg leading-relaxed text-gray-700">
+                        <p class="mb-4">
+                            "في Edel+White، شغفنا هو تحقيق الصحة الفموية الشاملة. نحن نجمع بين الدقة السويسرية والابتكار العلمي لنقدم لكم حلولاً تتجاوز التنظيف التقليدي."
+                        </p>
+                        <p class="font-bold text-swiss-red">
+                            التزامنا هو جعل العناية بأسنانكم تجربة يومية فعالة، آمنة، وممتعة.
+                        </p>
+                    </div>
+                    <div class="text-lg leading-relaxed text-gray-500 border-r-0 md:border-r-2 border-gray-200 md:pr-10" dir="ltr">
+                        <p class="mb-4 italic">
+                            "At Edel+White, our passion is achieving comprehensive oral health. We combine Swiss precision and scientific innovation to provide you with solutions that go beyond traditional cleaning."
+                        </p>
+                        <p class="font-bold text-gray-800 italic">
+                            Our commitment is to make your dental care routine effective, safe, and enjoyable.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-    </main>
+    <!-- Products Section -->
+    <section id="products" class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16 reveal">
+                <h3 class="text-4xl font-bold text-gray-900 mb-4">منتجاتنا المختارة من Edel+White</h3>
+                <div class="w-24 h-1 bg-swiss-red mx-auto rounded-full mb-6"></div>
+                <p class="text-xl text-gray-600">اضغط على المنتج لمعرفة المزيد من التفاصيل</p>
+            </div>
 
-    <footer class="bg-slate-900 text-slate-400 py-8 text-center text-sm border-t border-slate-800 mt-auto">
-        <p class="font-bold">جميع الحقوق محفوظة &copy; 2026 عيادة الدكتور فريد مؤيد السعيد لطب الأسنان</p>
+            <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Products dynamically injected via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Product Modal -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center px-4">
+        <div class="absolute inset-0 bg-gray-900 bg-opacity-60 modal-backdrop transition-opacity" onclick="closeModal()"></div>
+        <div class="bg-white rounded-3xl w-full max-w-2xl relative z-10 shadow-2xl transform transition-all scale-95 opacity-0" id="modal-content">
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-10 h-10 bg-gray-100 rounded-full text-gray-600 hover:bg-swiss-red hover:text-white transition flex items-center justify-center z-20">
+                <i class="fa-solid fa-times text-xl"></i>
+            </button>
+            
+            <div class="p-8 md:p-12 text-center relative overflow-hidden">
+                <!-- Icon Container (fallback) -->
+                <div id="modal-icon-container" class="w-40 h-40 bg-gray-50 rounded-full mx-auto mb-6 flex items-center justify-center text-swiss-red text-6xl shadow-inner border border-gray-100">
+                    <i id="modal-icon" class="fa-solid fa-tooth"></i>
+                </div>
+                <!-- Image Container (shows if image exists) -->
+                <div id="modal-image-container" class="hidden w-full h-64 mx-auto mb-6 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                    <img id="modal-image" src="" alt="Product Image" class="w-full h-full object-cover">
+                </div>
+                <h4 id="modal-title" class="text-3xl font-bold text-gray-900 mb-4"></h4>
+                <div class="w-16 h-1 bg-swiss-red mx-auto rounded-full mb-6"></div>
+                <p id="modal-desc" class="text-xl text-gray-700 mb-4 leading-relaxed"></p>
+                <p id="modal-eng" class="text-lg text-gray-500 italic mb-10" dir="ltr"></p>
+                
+                <a href="#contact" onclick="closeModal()" class="inline-block bg-swiss-red text-white font-bold px-10 py-4 rounded-full shadow-lg hover:bg-swiss-dark transition transform hover:-translate-y-1">
+                    طلب المنتج <i class="fa-solid fa-arrow-left mr-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Footer -->
+    <footer id="contact" class="bg-gray-900 text-white pt-20 pb-10 border-t-8 border-swiss-red relative overflow-hidden">
+        <!-- Abstract background cross -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-5 pointer-events-none">
+            <div class="absolute top-1/2 left-0 w-full h-32 bg-white -translate-y-1/2"></div>
+            <div class="absolute top-0 left-1/2 w-32 h-full bg-white -translate-x-1/2"></div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16 reveal">
+                <h3 class="text-4xl font-bold mb-4">تواصل معنا</h3>
+                <p class="text-gray-400 text-lg">نحن هنا للإجابة على جميع استفساراتكم وتلبية طلباتكم</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row justify-center gap-6 mb-16 reveal">
+                <!-- General Contact Button -->
+                <a href="tel:+9640000000000" class="group flex items-center bg-gray-800 hover:bg-swiss-red p-4 rounded-2xl transition-all duration-300 shadow-lg border border-gray-700 w-full md:w-64">
+                    <div class="w-14 h-14 bg-gray-700 group-hover:bg-white/20 rounded-xl flex items-center justify-center text-2xl transition-colors">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    <div class="mr-4 text-right">
+                        <div class="text-sm text-gray-400 group-hover:text-white/80">اتصال هاتفي</div>
+                        <div class="font-bold text-lg">اتصل بنا</div>
+                    </div>
+                </a>
+
+                <!-- Instagram Button -->
+                <a href="#" target="_blank" class="group flex items-center bg-gray-800 hover:bg-gradient-to-tr hover:from-yellow-400 hover:via-pink-500 hover:to-purple-600 p-4 rounded-2xl transition-all duration-300 shadow-lg border border-gray-700 w-full md:w-64">
+                    <div class="w-14 h-14 bg-gray-700 group-hover:bg-white/20 rounded-xl flex items-center justify-center text-3xl transition-colors">
+                        <i class="fa-brands fa-instagram"></i>
+                    </div>
+                    <div class="mr-4 text-right">
+                        <div class="text-sm text-gray-400 group-hover:text-white/80">تابعنا على</div>
+                        <div class="font-bold text-lg">Instagram</div>
+                    </div>
+                </a>
+
+                <!-- Telegram Button -->
+                <a href="#" target="_blank" class="group flex items-center bg-gray-800 hover:bg-[#0088cc] p-4 rounded-2xl transition-all duration-300 shadow-lg border border-gray-700 w-full md:w-64">
+                    <div class="w-14 h-14 bg-gray-700 group-hover:bg-white/20 rounded-xl flex items-center justify-center text-3xl transition-colors">
+                        <i class="fa-brands fa-telegram"></i>
+                    </div>
+                    <div class="mr-4 text-right">
+                        <div class="text-sm text-gray-400 group-hover:text-white/80">راسلنا عبر</div>
+                        <div class="font-bold text-lg">Telegram</div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="text-center text-gray-500 border-t border-gray-800 pt-8 mt-8">
+                <p>&copy; 2026 شركة بيت المرجان (Beit Al Murjan). الوكيل الحصري لشركة Edel+White في العراق. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
     </footer>
 
-    <!-- Custom Message Modal -->
-    <div id="message-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[100] p-4 backdrop-blur-md">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl transform transition-all scale-95 opacity-0 text-center" id="message-modal-content">
-            <div id="message-icon" class="text-6xl mb-6"></div>
-            <h3 id="message-title" class="text-2xl font-black mb-3 text-slate-800"></h3>
-            <p id="message-body" class="text-slate-600 mb-8 leading-relaxed font-medium"></p>
-            <button onclick="closeMessageModal()" class="w-full bg-slate-800 text-white font-bold text-lg py-4 rounded-xl hover:bg-slate-900 transition-colors shadow-lg">موافق</button>
-        </div>
-    </div>
-
-    <!-- Manager (Secretary) Modal -->
-    <div id="sec-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center z-[100] p-4 backdrop-blur-md">
-        <div class="bg-slate-50 rounded-3xl w-full max-w-3xl shadow-2xl max-h-[90vh] flex flex-col border border-slate-200">
-            <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-white rounded-t-3xl">
-                <div class="flex items-center gap-3">
-                    <div class="bg-slate-800 text-white p-3 rounded-xl shadow-md">
-                        <i class="fa-solid fa-chart-line text-xl"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-black text-slate-800">لوحة إدارة العيادة</h3>
-                        <p class="text-xs text-slate-500 font-bold">للسكرتارية فقط</p>
-                    </div>
-                </div>
-                <button onclick="closeSecretaryModal()" class="text-slate-400 hover:text-white hover:bg-red-500 transition-colors p-2 bg-slate-100 rounded-full shadow-inner w-10 h-10 flex items-center justify-center">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            
-            <div class="p-6 overflow-y-auto">
-                <!-- Login State -->
-                <div id="sec-login-step" class="max-w-sm mx-auto py-10">
-                    <div class="text-center mb-8">
-                        <div class="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
-                            <i class="fa-solid fa-lock text-4xl text-slate-400"></i>
-                        </div>
-                        <p class="text-slate-600 font-bold">الرجاء إدخال رمز الدخول السري</p>
-                    </div>
-                    <input type="password" id="sec-password" class="w-full px-4 py-5 rounded-2xl border-2 border-slate-200 mb-6 text-center tracking-[1em] text-3xl font-black focus:outline-none focus:border-clinic transition-colors shadow-sm bg-white" placeholder="****" maxlength="4">
-                    <button onclick="verifySecCode()" class="w-full bg-slate-800 text-white font-black text-lg py-4 rounded-2xl hover:bg-slate-900 transition-colors flex items-center justify-center gap-2 shadow-lg">
-                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                        دخول
-                    </button>
-                </div>
-
-                <!-- Dashboard State -->
-                <div id="sec-dashboard-step" class="hidden space-y-6">
-                    
-                    <!-- Waiting List Control -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                        <h4 class="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <i class="fa-solid fa-person-walking text-clinic text-xl"></i>
-                            تحديث صالة الانتظار
-                        </h4>
-                        <div class="flex items-center justify-center gap-6 mb-6">
-                            <button onclick="changeWaitingCount(-1)" class="w-16 h-16 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 text-3xl font-black flex items-center justify-center transition-colors shadow-sm border border-red-100">-</button>
-                            <input type="number" id="sec-waiting-input" value="0" min="0" class="w-32 px-2 py-4 rounded-2xl border-2 border-slate-200 text-center text-4xl font-black focus:outline-none focus:border-clinic text-slate-800 bg-slate-50">
-                            <button onclick="changeWaitingCount(1)" class="w-16 h-16 rounded-2xl bg-green-50 hover:bg-green-100 text-green-600 text-3xl font-black flex items-center justify-center transition-colors shadow-sm border border-green-100">+</button>
-                        </div>
-                        <button onclick="saveWaitingCount()" class="w-full bg-clinic text-white font-bold text-lg py-4 rounded-xl hover:bg-clinic-dark transition-colors shadow-md">نشر العدد للمرضى</button>
-                    </div>
-
-                    <!-- Bookings List -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                        <div class="flex justify-between items-center mb-6">
-                            <h4 class="font-bold text-slate-800 flex items-center gap-2 text-lg">
-                                <i class="fa-solid fa-list-check text-clinic text-xl"></i>
-                                سجل المواعيد المحجوزة
-                            </h4>
-                            <button onclick="clearAllBookings()" class="text-sm font-bold text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors border border-red-100"><i class="fa-solid fa-trash-can mr-1"></i> مسح الكل</button>
-                        </div>
-                        
-                        <div id="manager-bookings-list" class="space-y-4">
-                            <!-- Bookings will be injected here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Interactive JavaScript -->
     <script>
-        // --- State Management ---
-        const SECRETARY_CODE = "5422";
-        let currentWaitingCount = 0;
-        let selectedReasons = new Set();
-        let selectedDate = null;
-        let selectedTime = null;
-
-        // In-memory data store for bookings
-        let bookingsDB = JSON.parse(localStorage.getItem('clinicBookingsV2')) || {};
-
-        const TIME_SLOTS = [
-            "05:00 PM", "05:30 PM", 
-            "06:00 PM", "06:30 PM", 
-            "07:00 PM", "07:30 PM", 
-            "08:00 PM", "08:30 PM",
-            "09:00 PM"
+        const products = [
+            { id: 1, icon: "fa-bolt", name: "Sonic Generation 8 Winner", desc: "فرشاة أسنان صوتية هيدروديناميكية متطورة توفر تنظيفاً فائقاً.", eng: "Advanced hydrodynamic sonic toothbrush for superior cleaning." },
+            { id: 2, icon: "fa-star-of-life", name: "Anti-Plaque Whitening", desc: "تركيبة متوازنة لإزالة البقع بفعالية وحماية مينا الأسنان.", eng: "Balanced formula effectively removes stains and protects enamel." },
+            { id: 3, icon: "fa-arrows-turn-to-dots", image: "Curl3Dbrush.png", name: "CleanCurl 3D Brush", desc: "تصميم ثوري ثلاثي الجوانب ينظف الأسطح الثلاثة للسن في آن واحد.", eng: "Revolutionary 3-sided design cleans all tooth surfaces at once." },
+            { id: 4, icon: "fa-shield-halved", name: "STOP Sensitive Gel", desc: "جل لعلاج حساسية الأسنان يوفر حماية فورية وطويلة الأمد.", eng: "Tooth gel for sensitive teeth providing immediate and long-lasting relief." },
+            { id: 5, icon: "fa-feather", name: "Flosserbrush UltraSoft", desc: "فرشاة يدوية بشعيرات ناعمة جداً للعناية اللطيفة باللثة.", eng: "Manual toothbrush with ultra-soft bristles for gentle gum care." },
+            { id: 6, icon: "fa-heart-pulse", name: "Care Forte Toothpaste", desc: "تركيبة شاملة للعناية بالأسنان واللثة وتعزيز بياض الأسنان الطبيعي.", eng: "All-in-one formula for healthy teeth, gums, and natural whitening." },
+            { id: 7, icon: "fa-compress", name: "EasyFlex Interdental", desc: "فرشاة بينية مصممة للوصول إلى المناطق الصعبة بدقة سويسرية.", eng: "Interdental brush designed to reach difficult areas with Swiss precision." },
+            { id: 8, icon: "fa-wave-square", name: "Woven Dental Floss", desc: "خيط تنظيف منسوج لطيف على اللثة ومناسب للمساحات الواسعة.", eng: "Woven floss that is gentle on gums, suitable for wide spaces." },
+            { id: 9, icon: "fa-apple-whole", name: "7 Früchtli Kids", desc: "معجون أسنان للأطفال بنكهات فواكه طبيعية وفلورايد لتقوية المينا.", eng: "Kids toothpaste with natural fruit flavors and fluoride." },
+            { id: 10, icon: "fa-shower", name: "Power Spa Irrigator", desc: "جهاز تنظيف بالماء لإزالة بقايا الطعام بدقة من بين الأسنان.", eng: "Water irrigator to precisely remove food debris from between teeth." }
         ];
 
-        function formatDateForDisplay(dateObj) {
-            const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-            const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            return {
-                dayName: days[dateObj.getDay()],
-                dayNum: dateObj.getDate(),
-                month: months[dateObj.getMonth()],
-                iso: dateObj.toISOString().split('T')[0]
-            };
-        }
-
-        window.onload = function() {
-            setupReasonsButtons();
-            generateDateButtons();
-            updateManagerBookingsView();
-            initBeforeAfterSlider();
-        };
-
-        // --- Before/After Slider Logic ---
-        function initBeforeAfterSlider() {
-            const slider = document.getElementById('ba-slider');
-            const before = document.getElementById('ba-before');
-            const beforeImg = document.getElementById('ba-before-img');
-            const handle = document.getElementById('ba-handle');
+        const grid = document.getElementById('product-grid');
+        products.forEach((p, index) => {
+            const delay = (index % 3) * 0.1; 
             
-            let isDragging = false;
-
-            // Ensure before image stays correct width relative to container, not its cropped parent
-            function updateImgWidth() {
-                beforeImg.style.width = slider.offsetWidth + 'px';
-            }
-            window.addEventListener('resize', updateImgWidth);
-            updateImgWidth();
-
-            function updateSlider(e) {
-                if (!isDragging) return;
-                
-                let rect = slider.getBoundingClientRect();
-                // support touch and mouse
-                let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                
-                let x = clientX - rect.left;
-                
-                // bounds
-                if (x < 0) x = 0;
-                if (x > rect.width) x = rect.width;
-                
-                // Set percentage (remember RTL means right=0, left=100%)
-                // Because CSS is `right: 0`, width of before block dictates how much is shown.
-                // In RTL layout, the right side is X=0 relative to reading, but getBoundingClientRect is LTR screen coordinates.
-                // Let's calculate percentage from right edge.
-                let percentage = ((rect.right - clientX) / rect.width) * 100;
-                
-                if (percentage < 0) percentage = 0;
-                if (percentage > 100) percentage = 100;
-
-                before.style.width = percentage + "%";
-                // Position handle (Left is relative to screen LTR, so we use (100-percentage) for left positioning)
-                handle.style.left = (100 - percentage) + "%";
+            let visualContent = '';
+            if (p.image) {
+                visualContent = `<div class="w-full h-48 mb-6 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center"><img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"></div>`;
+            } else {
+                visualContent = `<div class="w-16 h-16 bg-red-50 text-swiss-red rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:bg-swiss-red group-hover:text-white transition-colors duration-300 shadow-sm"><i class="fa-solid ${p.icon}"></i></div>`;
             }
 
-            slider.addEventListener('mousedown', () => isDragging = true);
-            slider.addEventListener('touchstart', () => isDragging = true);
+            grid.innerHTML += `
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group reveal" style="transition-delay: ${delay}s" onclick="openModal(${index})">
+                    ${visualContent}
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 group-hover:text-swiss-red transition-colors">${p.name}</h4>
+                    <p class="text-gray-600 mb-4 line-clamp-2">${p.desc}</p>
+                    <div class="flex items-center text-swiss-red font-bold text-sm mt-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                        قراءة المزيد <i class="fa-solid fa-arrow-left mr-2 text-xs"></i>
+                    </div>
+                </div>
+            `;
+        });
+
+        const modal = document.getElementById('product-modal');
+        const modalContent = document.getElementById('modal-content');
+
+        function openModal(index) {
+            const p = products[index];
+            document.getElementById('modal-title').innerText = p.name;
+            document.getElementById('modal-desc').innerText = p.desc;
+            document.getElementById('modal-eng').innerText = p.eng;
             
-            window.addEventListener('mouseup', () => isDragging = false);
-            window.addEventListener('touchend', () => isDragging = false);
-            
-            window.addEventListener('mousemove', updateSlider);
-            window.addEventListener('touchmove', updateSlider);
-        }
+            const iconContainer = document.getElementById('modal-icon-container');
+            const imageContainer = document.getElementById('modal-image-container');
+            const imageEl = document.getElementById('modal-image');
 
-
-        // --- Form Interaction Logic ---
-        function setupReasonsButtons() {
-            const btns = document.querySelectorAll('.reason-btn');
-            btns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const val = this.getAttribute('data-value');
-                    if (selectedReasons.has(val)) {
-                        selectedReasons.delete(val);
-                        this.classList.remove('selected-btn', 'ring-2', 'ring-clinic', 'ring-offset-1');
-                    } else {
-                        selectedReasons.add(val);
-                        this.classList.add('selected-btn', 'ring-2', 'ring-clinic', 'ring-offset-1');
-                    }
-                });
-            });
-        }
-
-        function generateDateButtons() {
-            const container = document.getElementById('dates-container');
-            const today = new Date();
-
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(today);
-                d.setDate(today.getDate() + i);
-                const fDate = formatDateForDisplay(d);
-                
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'flex-shrink-0 flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border-2 border-slate-100 bg-white hover:bg-slate-50 transition-all min-w-[90px] date-btn shadow-sm';
-                btn.setAttribute('data-iso', fDate.iso);
-                
-                let dayLabel = i === 0 ? "اليوم" : i === 1 ? "غداً" : fDate.dayName;
-                
-                btn.innerHTML = `
-                    <span class="text-xs font-bold text-slate-500 mb-1">${dayLabel}</span>
-                    <span class="text-2xl font-black text-slate-800 leading-none">${fDate.dayNum}</span>
-                    <span class="text-xs font-bold text-clinic mt-1 bg-clinic-light/50 px-2 rounded">${fDate.month}</span>
-                `;
-
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.date-btn').forEach(b => {
-                        b.classList.remove('selected-btn', 'border-transparent', 'scale-105');
-                        b.querySelector('.text-slate-800')?.classList.replace('text-white', 'text-slate-800');
-                        b.querySelector('.text-slate-500')?.classList.replace('text-clinic-light', 'text-slate-500');
-                        b.querySelector('.text-clinic')?.classList.replace('text-white', 'text-clinic');
-                        b.querySelector('.bg-clinic-light\\/50')?.classList.remove('bg-white/20');
-                    });
-                    
-                    this.classList.add('selected-btn', 'border-transparent', 'scale-105');
-                    this.querySelector('.text-slate-800')?.classList.replace('text-slate-800', 'text-white');
-                    this.querySelector('.text-slate-500')?.classList.replace('text-slate-500', 'text-clinic-light');
-                    this.querySelector('.text-clinic')?.classList.replace('text-clinic', 'text-white');
-                    this.querySelector('.bg-clinic-light\\/50')?.classList.add('bg-white/20');
-                    
-                    selectedDate = this.getAttribute('data-iso');
-                    selectedTime = null;
-                    generateTimeButtons(selectedDate);
-                });
-
-                container.appendChild(btn);
-            }
-        }
-
-        function generateTimeButtons(dateIso) {
-            const container = document.getElementById('times-container');
-            const emptyState = document.getElementById('times-empty-state');
-            
-            container.innerHTML = '';
-            emptyState.classList.add('hidden');
-            container.classList.remove('hidden');
-
-            const dateBookings = bookingsDB[dateIso] || {};
-
-            TIME_SLOTS.forEach(time => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                let displayTime = time.replace(' PM', ' م');
-                const isBooked = !!dateBookings[time];
-
-                if (isBooked) {
-                    btn.className = 'py-3 px-1 rounded-xl border-2 border-slate-100 text-sm font-bold text-center disabled-time relative overflow-hidden bg-slate-100';
-                    btn.innerHTML = `
-                        <span class="line-through decoration-slate-400 decoration-2">${displayTime}</span>
-                        <div class="absolute inset-0 flex items-center justify-center bg-slate-200/80 backdrop-blur-[1px]">
-                            <span class="text-xs text-slate-600 font-black tracking-wider"><i class="fa-solid fa-lock mr-1"></i> محجوز</span>
-                        </div>
-                    `;
-                    btn.disabled = true;
-                } else {
-                    btn.className = 'py-3 px-1 rounded-xl border-2 border-slate-200 bg-white hover:border-clinic hover:text-clinic text-slate-700 text-sm font-black text-center transition-all time-btn shadow-sm';
-                    btn.innerHTML = displayTime;
-                    
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected-btn', 'border-transparent'));
-                        this.classList.add('selected-btn', 'border-transparent');
-                        selectedTime = time;
-                    });
-                }
-                container.appendChild(btn);
-            });
-        }
-
-        function submitBooking() {
-            const name = document.getElementById('patient-name').value.trim();
-            const phone = document.getElementById('patient-phone').value.trim();
-
-            if (!name || !phone) {
-                showMessage("بيانات ناقصة", "يرجى كتابة الاسم ورقم الهاتف.", "error");
-                return;
-            }
-            if (selectedReasons.size === 0) {
-                showMessage("بيانات ناقصة", "يرجى اختيار سبب الزيارة.", "error");
-                return;
-            }
-            if (!selectedDate || !selectedTime) {
-                showMessage("بيانات ناقصة", "يرجى اختيار يوم ووقت الحجز.", "error");
-                return;
-            }
-
-            if (!bookingsDB[selectedDate]) bookingsDB[selectedDate] = {};
-            
-            if (bookingsDB[selectedDate][selectedTime]) {
-                 showMessage("عذراً", "هذا الوقت تم حجزه للتو. يرجى اختيار وقت آخر.", "error");
-                 generateTimeButtons(selectedDate);
-                 return;
-            }
-
-            const reasonsArr = Array.from(selectedReasons);
-            
-            bookingsDB[selectedDate][selectedTime] = {
-                name: name,
-                phone: phone,
-                reasons: reasonsArr,
-                timestamp: new Date().toISOString()
-            };
-            
-            localStorage.setItem('clinicBookingsV2', JSON.stringify(bookingsDB));
-
-            generateTimeButtons(selectedDate);
-            updateManagerBookingsView();
-
-            let displayTime = selectedTime.replace(' PM', ' م');
-            const waNumber = "9647818653825";
-            
-            // Enhanced WhatsApp Message Format
-            const waMessage = `✨ *مرحباً عيادة د. فريد مؤيد السعيد* ✨%0Aأود تأكيد حجز موعدي:%0A%0A👤 *الاسم:* ${name}%0A📱 *الهاتف:* ${phone}%0A🗓 *التاريخ:* ${selectedDate}%0A⏰ *الوقت:* ${displayTime}%0A🦷 *نوع العلاج:* ${reasonsArr.join('، ')}%0A%0A💡 _ملاحظة: لقد تذكرت جلب الأشعة السابقة (إن وجدت)._%0A📍 *موقع العيادة:* https://maps.app.goo.gl/PMCV9rcQGc3XPrgN9?g_st=ac`;
-            
-            const waLink = `https://wa.me/${waNumber}?text=${waMessage}`;
-
-            showMessage(
-                "تم حجز الموعد بنجاح!", 
-                "سيتم تحويلك الآن إلى الواتساب لإرسال رسالة التأكيد التلقائية للعيادة.",
-                "success"
-            );
-
-            setTimeout(() => {
-                window.open(waLink, '_blank');
-                document.getElementById('booking-form').reset();
-                selectedReasons.clear();
-                document.querySelectorAll('.reason-btn').forEach(b => b.classList.remove('selected-btn', 'ring-2', 'ring-clinic', 'ring-offset-1'));
-                selectedTime = null;
-                generateTimeButtons(selectedDate);
-                closeMessageModal();
-            }, 3000);
-        }
-
-        // --- Modal Helpers ---
-        function showMessage(title, body, type = 'success') {
-            const modal = document.getElementById('message-modal');
-            const content = document.getElementById('message-modal-content');
-            const icon = document.getElementById('message-icon');
-            
-            document.getElementById('message-title').innerText = title;
-            document.getElementById('message-body').innerText = body;
-            
-            if (type === 'success') {
-                icon.innerHTML = '<div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-500"><i class="fa-solid fa-check text-5xl"></i></div>';
-            } else if (type === 'error') {
-                icon.innerHTML = '<div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-500"><i class="fa-solid fa-xmark text-5xl"></i></div>';
+            if (p.image) {
+                iconContainer.classList.add('hidden');
+                iconContainer.classList.remove('flex');
+                imageContainer.classList.remove('hidden');
+                imageEl.src = p.image;
+            } else {
+                imageContainer.classList.add('hidden');
+                iconContainer.classList.remove('hidden');
+                iconContainer.classList.add('flex');
+                const iconEl = document.getElementById('modal-icon');
+                iconEl.className = `fa-solid ${p.icon}`;
             }
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function closeMessageModal() {
-            const modal = document.getElementById('message-modal');
-            const content = document.getElementById('message-modal-content');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
+            
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
-            }, 200);
+                document.body.style.overflow = 'auto';
+            }, 300); // Wait for transition to finish
         }
 
-        // --- Manager Dashboard ---
-        function openSecretaryModal() {
-            document.getElementById('sec-password').value = '';
-            document.getElementById('sec-login-step').classList.remove('hidden');
-            document.getElementById('sec-dashboard-step').classList.add('hidden');
-            
-            const modal = document.getElementById('sec-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => document.getElementById('sec-password').focus(), 100);
-        }
-
-        function closeSecretaryModal() {
-            const modal = document.getElementById('sec-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        document.getElementById('sec-password').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') verifySecCode();
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
         });
 
-        function verifySecCode() {
-            const code = document.getElementById('sec-password').value;
-            if (code === SECRETARY_CODE) {
-                document.getElementById('sec-login-step').classList.add('hidden');
-                document.getElementById('sec-dashboard-step').classList.remove('hidden');
-                document.getElementById('sec-waiting-input').value = currentWaitingCount;
-                updateManagerBookingsView();
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Scroll Reveal Animation Observer
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal(); // Trigger on load
+        
+        // Change Navbar background on scroll
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                nav.classList.add('shadow-lg', 'py-2');
+                nav.classList.remove('py-4', 'shadow-md');
             } else {
-                showMessage('رمز خاطئ', 'الرجاء التأكد من الرمز والمحاولة مجدداً.', 'error');
+                nav.classList.add('py-4', 'shadow-md');
+                nav.classList.remove('shadow-lg', 'py-2');
             }
-        }
-
-        function changeWaitingCount(amount) {
-            const input = document.getElementById('sec-waiting-input');
-            let val = parseInt(input.value) || 0;
-            val += amount;
-            if (val < 0) val = 0;
-            input.value = val;
-        }
-
-        function saveWaitingCount() {
-            const input = document.getElementById('sec-waiting-input');
-            currentWaitingCount = parseInt(input.value) || 0;
-            
-            const publicCount = document.getElementById('public-waiting-count');
-            publicCount.classList.add('scale-150', 'text-green-500');
-            setTimeout(() => {
-                publicCount.innerText = currentWaitingCount;
-                publicCount.classList.remove('scale-150', 'text-green-500');
-            }, 300);
-
-            showMessage('تم بنجاح', 'تم تحديث شاشة الانتظار للمرضى.', 'success');
-        }
-
-        function updateManagerBookingsView() {
-            const listContainer = document.getElementById('manager-bookings-list');
-            listContainer.innerHTML = '';
-            let hasBookings = false;
-            const dates = Object.keys(bookingsDB).sort();
-
-            dates.forEach(date => {
-                const timesForDate = bookingsDB[date];
-                if (Object.keys(timesForDate).length === 0) return;
-                
-                hasBookings = true;
-                const dateHeader = document.createElement('div');
-                dateHeader.className = 'bg-slate-800 text-white p-3 rounded-t-xl font-bold text-sm mt-6 first:mt-0 shadow-md';
-                dateHeader.innerHTML = `<i class="fa-regular fa-calendar-days ml-2 text-clinic-light"></i> ${date}`;
-                listContainer.appendChild(dateHeader);
-
-                const bookingsWrapper = document.createElement('div');
-                bookingsWrapper.className = 'border-x border-b border-slate-200 rounded-b-xl divide-y divide-slate-100 bg-white';
-                
-                const sortedTimes = Object.keys(timesForDate).sort((a, b) => a.localeCompare(b));
-
-                sortedTimes.forEach(time => {
-                    const b = timesForDate[time];
-                    let displayTime = time.replace(' PM', ' م');
-                    
-                    const item = document.createElement('div');
-                    item.className = 'p-4 flex justify-between items-start hover:bg-slate-50 transition-colors group';
-                    item.innerHTML = `
-                        <div>
-                            <div class="font-black text-lg text-slate-800 mb-1">${b.name}</div>
-                            <div class="text-xs text-slate-600 mb-2 flex flex-wrap gap-1">
-                                ${b.reasons.map(r => `<span class="bg-blue-50 text-clinic border border-blue-100 px-2 py-1 rounded-md font-bold">${r}</span>`).join('')}
-                            </div>
-                            <div class="text-sm text-slate-500 font-black bg-slate-100 inline-block px-2 py-1 rounded border border-slate-200" dir="ltr"><i class="fa-solid fa-phone text-xs mr-1"></i>${b.phone}</div>
-                        </div>
-                        <div class="flex flex-col items-end gap-3">
-                            <span class="bg-clinic text-white font-black px-3 py-1.5 rounded-lg text-sm shadow-md whitespace-nowrap">
-                                <i class="fa-regular fa-clock ml-1"></i> ${displayTime}
-                            </span>
-                            <button onclick="deleteBooking('${date}', '${time}')" class="text-slate-400 hover:text-white hover:bg-red-500 px-2 py-1 rounded-md transition-colors text-xs font-bold border border-transparent hover:border-red-600" title="إلغاء الموعد">
-                                <i class="fa-solid fa-trash-can ml-1"></i> حذف
-                            </button>
-                        </div>
-                    `;
-                    bookingsWrapper.appendChild(item);
-                });
-                listContainer.appendChild(bookingsWrapper);
-            });
-
-            if (!hasBookings) {
-                listContainer.innerHTML = `
-                    <div class="text-center text-slate-400 py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                        <i class="fa-regular fa-folder-open text-5xl mb-3 text-slate-300"></i><br>
-                        <span class="font-bold">لا توجد مواعيد محجوزة حالياً</span>
-                    </div>
-                `;
-            }
-        }
-
-        window.deleteBooking = function(date, time) {
-            if(confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) {
-                delete bookingsDB[date][time];
-                if (Object.keys(bookingsDB[date]).length === 0) delete bookingsDB[date];
-                localStorage.setItem('clinicBookingsV2', JSON.stringify(bookingsDB));
-                updateManagerBookingsView();
-                if (selectedDate === date) generateTimeButtons(date);
-            }
-        }
-
-        window.clearAllBookings = function() {
-            if(confirm('تحذير: سيتم مسح جميع السجلات المتاحة. هل أنت متأكد؟')) {
-                bookingsDB = {};
-                localStorage.removeItem('clinicBookingsV2');
-                updateManagerBookingsView();
-                if (selectedDate) generateTimeButtons(selectedDate);
-            }
-        }
+        });
     </script>
 </body>
 </html>
