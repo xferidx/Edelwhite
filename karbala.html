@@ -209,6 +209,44 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .mgr-modal .err{color:var(--teal-light); font-size:.75rem; text-align:center; margin-bottom:10px; display:none;}
 .mgr-modal .err.show{display:block;}
 
+/* stocks modal */
+.stocks-btn-mgr{
+  font-size:.72rem; font-weight:800; color:#fff; background:rgba(255,255,255,.14);
+  padding:6px 14px; border-radius:100px; border:1px solid rgba(255,255,255,.25);
+}
+.stock-modal .modal{max-width:640px;}
+.stock-sources{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;}
+.stock-src-btn{
+  padding:9px 16px; border-radius:100px; font-size:.8rem; font-weight:800;
+  border:1.5px solid var(--glass-border); color:var(--silver-mid); background:rgba(255,255,255,.04);
+}
+.stock-src-btn.active{background:linear-gradient(135deg,var(--teal),#c02040); border-color:transparent; color:#fff;}
+.stock-cat-header{
+  font-size:.7rem; font-weight:800; color:var(--teal-light); text-transform:uppercase;
+  letter-spacing:.06em; margin:16px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--glass-border);
+  font-family:var(--font-en);
+}
+.stock-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:9px 0; border-bottom:1px dashed var(--glass-border);
+}
+.stock-row .sname{font-size:.82rem; font-weight:600; font-family:var(--font-en); color:#fff;}
+.stock-row input[type=number]{
+  width:78px; text-align:center; padding:9px 6px; border-radius:10px; border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.06); color:#fff; font-family:var(--font-en); font-weight:800; font-size:.9rem;
+}
+.stock-row input[type=number]::-webkit-inner-spin-button{opacity:1;}
+.stock-updated{
+  font-size:.72rem; color:var(--silver-mid); text-align:center; margin-top:16px; padding-top:12px;
+  border-top:1px solid var(--glass-border);
+}
+.stock-warning{
+  font-size:.72rem; color:#ffb020; background:rgba(255,176,32,.1); border:1px solid rgba(255,176,32,.3);
+  padding:8px 12px; border-radius:10px; margin-bottom:14px; display:none;
+}
+.stock-warning.show{display:block;}
+.stock-empty-hint{font-size:.78rem; color:var(--silver-mid); text-align:center; padding:24px 0;}
+
 
 /* modal */
 .modal-bg{position:fixed; inset:0; background:rgba(10,4,4,.7); z-index:60; display:none; align-items:flex-end; justify-content:center;}
@@ -236,7 +274,10 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
   </div>
   <div class="mgr-bar" id="mgrBar">
     <span>🔓 وضع الإدارة مفعّل — اضغط على أي منتج لتغيير حالة توفره</span>
-    <button id="mgrExit">خروج</button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="stocks-btn-mgr" id="stocksBtn">📦 المخزون</button>
+      <button id="mgrExit">خروج</button>
+    </div>
   </div>
 </header>
 
@@ -322,25 +363,27 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<div class="modal-bg stock-modal" id="stockModal">
+  <div class="modal">
+    <button class="close" id="closeStock">✕</button>
+    <h3>إدارة المخزون حسب المصدر</h3>
+    <p style="font-size:.78rem;color:var(--silver-mid);margin-bottom:16px;">اختر المصدر ثم عدّل كمية كل منتج متوفرة عنده</p>
+    <div class="stock-sources" id="stockSources"></div>
+    <div class="stock-warning" id="stockWarning">⚠️ غير متصل بالخادم حالياً — التعديلات ما راح تنحفظ. تأكد من اتصال الإنترنت وأعد فتح النافذة.</div>
+    <div id="stockListArea">
+      <p class="stock-empty-hint">اختر مصدر من الأعلى لعرض وتعديل مخزونه</p>
+    </div>
+    <button class="confirm-btn" id="saveStockBtn" style="display:none;">💾 حفظ التحديث</button>
+    <div class="stock-updated" id="stockUpdatedLine"></div>
+  </div>
+</div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAVunCAbZV8tiG-RConUCx_Ra7b-pljnps",
-  authDomain: "baitalmurjan.firebaseapp.com",
-  projectId: "baitalmurjan",
-  storageBucket: "baitalmurjan.firebasestorage.app",
-  messagingSenderId: "771572241923",
-  appId: "1:771572241923:web:8a6a5408a10c76b7e3a036",
-  measurementId: "G-X0T0CVN6JH"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
+<script>
 /* ============================================================
    نفس بيانات المنتجات الحقيقية من موقعك الرئيسي (index.html)
    24 منتج — الأسماء والصور والفئات مطابقة تماماً لموقعك
+   هذا السكربت مستقل بالكامل عن Firebase — الطلب والدفع يشتغلون
+   حتى لو فشل تحميل Firebase لأي سبب (شبكة، حجب، إلخ)
    ============================================================ */
 const IMG_BASE = "https://xferidx.github.io/Edelwhite/";
 
@@ -383,28 +426,39 @@ const PRODUCTS = [
 
 const qty = {};
 
-/* ---------- manager mode + Firebase live stock sync ---------- */
+/* ---------- stock management data (per-distributor quantities) ---------- */
+const STOCK_SOURCES = [
+  { key:'shifa',    label:'الشفاء' },
+  { key:'jibal',     label:'جبال' },
+  { key:'thuraya',   label:'الثريا' },
+  { key:'amazon',    label:'امازون' },
+  { key:'jozor',     label:'مكتب جذور' },
+];
+// order: toothpastes, mouthwashes, brushes, flosses, then tongue cleaner only (no other devices, no kids)
+const STOCK_ITEM_IDS = [1,2,3,4, 5,6,23, 7,8,9,10,11,12,19, 13,14,15,16, 20];
+const STOCK_ITEMS = STOCK_ITEM_IDS.map(id => PRODUCTS.find(p => p.id === id));
+const STOCK_CAT_LABELS = { toothpaste:'Toothpastes', mouthwash:'Mouthwashes', brush:'Brushes', floss:'Flosses', device:'Tongue Cleaner' };
+
+/* ---------- manager mode ---------- */
 const MGR_CODE = "5422";
 let isManager = false;
 let outOfStock = new Set();
+let firebaseReady = false; // set true by the Firebase script below if it loads successfully
 
-const stockRef = doc(db, "karbala", "stock");
-
-// Real-time listener — any change (from any device) updates everyone instantly
-onSnapshot(stockRef, (snap) => {
-  const data = snap.exists() ? snap.data() : {};
-  outOfStock = new Set(Object.keys(data).filter(id => data[id] === true).map(Number));
+// Called by the Firebase module (if it loads) whenever stock data changes on the server
+window.__applyStockUpdate = function(newSet){
+  outOfStock = newSet;
   renderProducts(currentCat);
-}, (err) => {
-  console.error("Firestore sync error:", err);
-});
+};
 
-async function setStockStatus(id, isOutOfStock){
-  try {
-    await setDoc(stockRef, { [id]: isOutOfStock }, { merge: true });
-  } catch(e){
-    alert("تعذّر تحديث حالة المخزون — تأكد من اتصال الإنترنت وحاول مرة أخرى");
-    console.error(e);
+function toggleStock(id){
+  const goingOutOfStock = !outOfStock.has(id);
+  if(goingOutOfStock) outOfStock.add(id); else outOfStock.delete(id);
+  renderProducts(currentCat);
+  if(window.__writeStock){
+    window.__writeStock(id, goingOutOfStock);
+  } else {
+    console.warn("Firebase not connected — stock change is local to this device only.");
   }
 }
 
@@ -447,13 +501,104 @@ function exitManager(){
 }
 document.getElementById('mgrExit').onclick = exitManager;
 
-function toggleStock(id){
-  const goingOutOfStock = !outOfStock.has(id);
-  // optimistic UI update while Firestore write completes
-  if(goingOutOfStock) outOfStock.add(id); else outOfStock.delete(id);
-  renderProducts(currentCat);
-  setStockStatus(id, goingOutOfStock);
+/* ---------- stocks panel ---------- */
+const stocksBtn = document.getElementById('stocksBtn');
+const stockModal = document.getElementById('stockModal');
+const stockSourcesEl = document.getElementById('stockSources');
+const stockListArea = document.getElementById('stockListArea');
+const stockWarning = document.getElementById('stockWarning');
+const saveStockBtn = document.getElementById('saveStockBtn');
+const stockUpdatedLine = document.getElementById('stockUpdatedLine');
+
+let currentStockSource = null;
+let stockUnsub = null;
+let stockData = { items:{}, updatedAt:null };
+
+STOCK_SOURCES.forEach(src=>{
+  const b = document.createElement('button');
+  b.className = 'stock-src-btn';
+  b.textContent = src.label;
+  b.onclick = ()=> selectStockSource(src.key, src.label, b);
+  stockSourcesEl.appendChild(b);
+});
+
+stocksBtn.onclick = ()=> stockModal.classList.add('show');
+document.getElementById('closeStock').onclick = ()=>{
+  stockModal.classList.remove('show');
+  if(stockUnsub){ stockUnsub(); stockUnsub = null; }
+};
+
+function selectStockSource(key, label, btnEl){
+  currentStockSource = key;
+  document.querySelectorAll('.stock-src-btn').forEach(b=>b.classList.remove('active'));
+  btnEl.classList.add('active');
+
+  if(stockUnsub){ stockUnsub(); stockUnsub = null; }
+
+  if(!window.__subscribeStockSource){
+    stockWarning.classList.add('show');
+    stockListArea.innerHTML = '<p class="stock-empty-hint">غير متصل بالخادم — تعذّر تحميل المخزون</p>';
+    saveStockBtn.style.display = 'none';
+    return;
+  }
+  stockWarning.classList.remove('show');
+  stockListArea.innerHTML = '<p class="stock-empty-hint">جارٍ التحميل...</p>';
+  saveStockBtn.style.display = 'block';
+
+  stockUnsub = window.__subscribeStockSource(key, (data)=>{
+    stockData = data;
+    renderStockList();
+  });
 }
+
+function renderStockList(){
+  let lastCat = null;
+  let html = '';
+  STOCK_ITEMS.forEach(p=>{
+    if(p.cat !== lastCat){
+      html += `<div class="stock-cat-header">${STOCK_CAT_LABELS[p.cat]}</div>`;
+      lastCat = p.cat;
+    }
+    const val = (stockData.items && stockData.items[p.id] != null) ? stockData.items[p.id] : 0;
+    html += `
+      <div class="stock-row">
+        <span class="sname">${p.nameEn}</span>
+        <input type="number" min="0" inputmode="numeric" id="stockqty-${p.id}" value="${val}">
+      </div>`;
+  });
+  stockListArea.innerHTML = html;
+
+  if(stockData.updatedAt && typeof stockData.updatedAt.toDate === 'function'){
+    const d = stockData.updatedAt.toDate();
+    stockUpdatedLine.textContent = 'آخر تحديث: ' + d.toLocaleString('ar-IQ', { dateStyle:'medium', timeStyle:'short' });
+  } else if(stockData.updatedAt === 'pending'){
+    stockUpdatedLine.textContent = 'جارٍ حفظ التحديث...';
+  } else {
+    stockUpdatedLine.textContent = 'لم يُحدَّث المخزون لهذا المصدر بعد';
+  }
+}
+
+saveStockBtn.onclick = async ()=>{
+  if(!currentStockSource || !window.__saveStockSource){
+    alert('غير متصل بالخادم، تعذّر الحفظ');
+    return;
+  }
+  const itemsMap = {};
+  STOCK_ITEMS.forEach(p=>{
+    const el = document.getElementById('stockqty-'+p.id);
+    itemsMap[p.id] = Math.max(0, parseInt(el.value, 10) || 0);
+  });
+  saveStockBtn.disabled = true;
+  saveStockBtn.textContent = '💾 جارٍ الحفظ...';
+  try{
+    await window.__saveStockSource(currentStockSource, itemsMap);
+  } catch(e){
+    alert('تعذّر حفظ التحديث — تأكد من اتصال الإنترنت وحاول مرة أخرى');
+    console.error(e);
+  }
+  saveStockBtn.disabled = false;
+  saveStockBtn.textContent = '💾 حفظ التحديث';
+};
 
 /* ---------- tabs ---------- */
 let currentCat = 'all';
@@ -617,6 +762,74 @@ document.getElementById('newOrderBtn').onclick = ()=> location.reload();
 /* ---------- initial render (must come last — depends on everything above) ---------- */
 renderProducts('all');
 
+</script>
+
+<!-- ============================================================
+     Firebase — isolated on purpose. If this fails to load (network
+     issue, blocked domain, etc.) the ordering page above still
+     works fully; only live stock sync becomes unavailable.
+     ============================================================ -->
+<script type="module">
+(async () => {
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } =
+      await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVunCAbZV8tiG-RConUCx_Ra7b-pljnps",
+      authDomain: "baitalmurjan.firebaseapp.com",
+      projectId: "baitalmurjan",
+      storageBucket: "baitalmurjan.firebasestorage.app",
+      messagingSenderId: "771572241923",
+      appId: "1:771572241923:web:8a6a5408a10c76b7e3a036",
+      measurementId: "G-X0T0CVN6JH"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    /* --- out-of-stock (per product, shared across all sources) --- */
+    const stockRef = doc(db, "karbala", "stock");
+    onSnapshot(stockRef, (snap) => {
+      const data = snap.exists() ? snap.data() : {};
+      const newSet = new Set(Object.keys(data).filter(id => data[id] === true).map(Number));
+      if (window.__applyStockUpdate) window.__applyStockUpdate(newSet);
+    }, (err) => console.error("Firestore out-of-stock sync error:", err));
+
+    window.__writeStock = async (id, isOutOfStock) => {
+      try {
+        await setDoc(stockRef, { [id]: isOutOfStock }, { merge: true });
+      } catch (e) {
+        alert("تعذّر تحديث حالة المخزون — تأكد من اتصال الإنترنت وحاول مرة أخرى");
+        console.error(e);
+      }
+    };
+
+    /* --- per-distributor stock quantities --- */
+    window.__subscribeStockSource = function(sourceKey, onData){
+      const ref = doc(db, "karbala_stock", sourceKey);
+      return onSnapshot(ref, (snap) => {
+        if (snap.exists()) {
+          onData(snap.data());
+        } else {
+          onData({ items:{}, updatedAt:null });
+        }
+      }, (err) => {
+        console.error("Stock source sync error:", err);
+        onData({ items:{}, updatedAt:null });
+      });
+    };
+
+    window.__saveStockSource = async function(sourceKey, itemsMap){
+      const ref = doc(db, "karbala_stock", sourceKey);
+      await setDoc(ref, { items: itemsMap, updatedAt: serverTimestamp() }, { merge: true });
+    };
+
+    console.log("Firebase connected — live sync enabled.");
+  } catch (e) {
+    console.warn("Firebase failed to load — page still works, but stock sync is disabled:", e);
+  }
+})();
 </script>
 </body>
 </html>
