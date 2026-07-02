@@ -537,7 +537,6 @@ function renderProducts(filter){
   });
   renderSummary();
 }
-renderProducts('all');
 
 /* ---------- sources ---------- */
 const selectedSources = new Set();
@@ -614,6 +613,10 @@ document.getElementById('sendWaBtn').onclick = ()=>{
 };
 
 document.getElementById('newOrderBtn').onclick = ()=> location.reload();
+
+/* ---------- initial render (must come last — depends on everything above) ---------- */
+renderProducts('all');
+
 </script>
 </body>
 </html>
