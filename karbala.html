@@ -229,13 +229,21 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .stock-row{
   display:flex; align-items:center; justify-content:space-between; gap:12px;
   padding:9px 0; border-bottom:1px dashed var(--glass-border);
+  direction:ltr; /* force name on the left, quantity stepper on the right regardless of page RTL */
 }
-.stock-row .sname{font-size:.82rem; font-weight:600; font-family:var(--font-en); color:#fff;}
-.stock-row input[type=number]{
-  width:78px; text-align:center; padding:9px 6px; border-radius:10px; border:1px solid var(--glass-border);
-  background:rgba(255,255,255,.06); color:#fff; font-family:var(--font-en); font-weight:800; font-size:.9rem;
+.stock-row .sname{font-size:.82rem; font-weight:600; font-family:var(--font-en); color:#fff; text-align:left;}
+.stock-stepper{
+  display:flex; align-items:center; gap:0; border:1px solid var(--glass-border); border-radius:10px;
+  overflow:hidden; background:rgba(255,255,255,.04); flex-shrink:0;
 }
-.stock-row input[type=number]::-webkit-inner-spin-button{opacity:1;}
+.stock-stepper button{
+  width:28px; height:28px; font-size:15px; font-weight:800; color:var(--teal-light); flex-shrink:0;
+}
+.stock-stepper button:active{background:var(--teal); color:#fff;}
+.stock-stepper input[type=number]{
+  width:44px; text-align:center; padding:5px 2px; border:none; border-radius:0;
+  background:transparent; color:#fff; font-family:var(--font-en); font-weight:800; font-size:.85rem;
+}
 .stock-updated{
   font-size:.72rem; color:var(--silver-mid); text-align:center; margin-top:16px; padding-top:12px;
   border-top:1px solid var(--glass-border);
@@ -563,10 +571,23 @@ function renderStockList(){
     html += `
       <div class="stock-row">
         <span class="sname">${p.nameEn}</span>
-        <input type="number" min="0" inputmode="numeric" id="stockqty-${p.id}" value="${val}">
+        <div class="stock-stepper">
+          <button type="button" class="stock-minus" data-id="${p.id}">−</button>
+          <input type="number" min="0" inputmode="numeric" id="stockqty-${p.id}" value="${val}" readonly>
+          <button type="button" class="stock-plus" data-id="${p.id}">+</button>
+        </div>
       </div>`;
   });
   stockListArea.innerHTML = html;
+
+  stockListArea.querySelectorAll('.stock-plus, .stock-minus').forEach(btn=>{
+    btn.onclick = ()=>{
+      const input = document.getElementById('stockqty-' + btn.dataset.id);
+      const cur = parseInt(input.value, 10) || 0;
+      const next = btn.classList.contains('stock-plus') ? cur + 1 : Math.max(0, cur - 1);
+      input.value = next;
+    };
+  });
 
   if(stockData.updatedAt && typeof stockData.updatedAt.toDate === 'function'){
     const d = stockData.updatedAt.toDate();
