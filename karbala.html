@@ -443,8 +443,26 @@ const STOCK_SOURCES = [
   { key:'jozor',     label:'مكتب جذور' },
 ];
 // order: toothpastes, mouthwashes, brushes, flosses, then tongue cleaner only (no other devices, no kids)
-const STOCK_ITEM_IDS = [1,2,3,4, 5,6,23, 7,8,9,10,11,12,19, 13,14,15,16, 20];
-const STOCK_ITEMS = STOCK_ITEM_IDS.map(id => PRODUCTS.find(p => p.id === id));
+// stock-only entries not sold individually in the main catalog (interdental brush sizes)
+const STOCK_EXTRA_ITEMS = [
+  { id:101, cat:'brush', nameEn:'Interdental Brush XS' },
+  { id:102, cat:'brush', nameEn:'Interdental Brush S' },
+  { id:103, cat:'brush', nameEn:'Interdental Brush SS' },
+  { id:104, cat:'brush', nameEn:'Interdental Brush SSS' },
+  { id:105, cat:'brush', nameEn:'Interdental Brush M' },
+  { id:106, cat:'brush', nameEn:'Interdental Brush L' },
+  { id:107, cat:'brush', nameEn:'Interdental Brush Mix' },
+];
+const STOCK_LOOKUP = [...PRODUCTS, ...STOCK_EXTRA_ITEMS];
+// order: toothpastes (incl. kids paste) -> mouthwashes -> brushes (incl. kids brush + interdental sizes) -> flosses -> tongue cleaner
+const STOCK_ITEM_IDS = [
+  1,2,3,4,21,
+  5,6,23,
+  7,8,9,10,11,12,22,101,102,103,104,105,106,107,
+  13,14,15,16,
+  20
+];
+const STOCK_ITEMS = STOCK_ITEM_IDS.map(id => STOCK_LOOKUP.find(p => p.id === id));
 const STOCK_CAT_LABELS = { toothpaste:'Toothpastes', mouthwash:'Mouthwashes', brush:'Brushes', floss:'Flosses', device:'Tongue Cleaner' };
 
 /* ---------- manager mode ---------- */
