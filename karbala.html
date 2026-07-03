@@ -134,12 +134,12 @@ main{max-width:1100px; margin:0 auto; padding:22px 18px 8px; position:relative; 
   overflow:hidden; background:rgba(255,255,255,.04); width:100%;
 }
 .ef-stepper button{
-  width:16px; height:20px; font-size:11px; font-weight:800; color:var(--teal-light); flex-shrink:0;
+  width:14px; height:20px; font-size:10px; font-weight:800; color:var(--teal-light); flex-shrink:0;
 }
 .ef-stepper button:active{background:var(--teal); color:#fff;}
 .ef-stepper input{
-  width:100%; min-width:0; text-align:center; border:none; background:transparent; color:#fff;
-  font-size:.64rem; font-weight:800; font-family:var(--font-en); padding:0;
+  flex:1; min-width:18px; text-align:center; border:none; background:transparent; color:#fff;
+  font-size:.62rem; font-weight:800; font-family:var(--font-en); padding:0;
 }
 .ef-info-link{
   display:block; text-align:center; margin-top:8px; font-size:.68rem; font-weight:700;
@@ -177,6 +177,14 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
   padding:10px 0; border-bottom:1px dashed var(--glass-border); font-size:.8rem;
 }
 .sum-row .qty{background:rgba(224,48,80,.18); color:var(--teal-light); font-weight:800; font-size:.68rem; padding:3px 10px; border-radius:100px; flex-shrink:0;}
+.sum-row-actions{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+.sum-remove{
+  width:24px; height:24px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(224,48,80,.14); border:1px solid rgba(224,48,80,.4);
+  color:#ff5577; font-size:.7rem; font-weight:900;
+}
+.sum-remove:active{background:var(--teal); color:#fff;}
 .empty-note{font-size:.78rem; color:var(--silver-mid); text-align:center; padding:18px 0;}
 
 .confirm-btn{
@@ -876,15 +884,21 @@ function getCartLines(){
   PRODUCTS.forEach(p=>{
     if(p.sizes){
       p.sizes.forEach(s=>{
-        const q = qty[p.id+'::'+s.key] || 0;
-        if(q > 0) lines.push({ label: `${p.nameAr} — ${s.label}`, qty: q });
+        const key = p.id+'::'+s.key;
+        const q = qty[key] || 0;
+        if(q > 0) lines.push({ label: `${p.nameAr} — ${s.label}`, qty: q, key, pid: p.id });
       });
     } else {
       const q = qty[p.id] || 0;
-      if(q > 0) lines.push({ label: p.nameAr, qty: q });
+      if(q > 0) lines.push({ label: p.nameAr, qty: q, key: String(p.id), pid: p.id });
     }
   });
   return lines;
+}
+
+function removeCartItem(key, pid){
+  qty[key] = 0;
+  renderProducts(currentCat); // resyncs product grid steppers/inputs and re-renders the summary
 }
 
 /* ---------- summary ---------- */
@@ -897,8 +911,14 @@ function renderSummary(){
     summaryList.innerHTML = items.map(it => `
       <div class="sum-row">
         <span>${it.label}</span>
-        <span class="qty">× ${it.qty}</span>
+        <div class="sum-row-actions">
+          <span class="qty">× ${it.qty}</span>
+          <button type="button" class="sum-remove" data-key="${it.key}" data-pid="${it.pid}" title="إزالة من الطلب">✕</button>
+        </div>
       </div>`).join('');
+    summaryList.querySelectorAll('.sum-remove').forEach(btn=>{
+      btn.onclick = ()=> removeCartItem(btn.dataset.key, btn.dataset.pid);
+    });
   }
   validateForm();
 }
