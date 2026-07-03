@@ -226,6 +226,10 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
   letter-spacing:.06em; margin:16px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--glass-border);
   font-family:var(--font-en);
 }
+.stock-sub-header{
+  font-size:.66rem; font-weight:700; color:var(--silver-mid); text-transform:uppercase;
+  letter-spacing:.05em; margin:10px 0 4px 18px; font-family:var(--font-en);
+}
 .stock-row{
   display:flex; align-items:center; justify-content:space-between; gap:12px;
   padding:9px 0; border-bottom:1px dashed var(--glass-border);
@@ -445,13 +449,13 @@ const STOCK_SOURCES = [
 // order: toothpastes, mouthwashes, brushes, flosses, then tongue cleaner only (no other devices, no kids)
 // stock-only entries not sold individually in the main catalog (interdental brush sizes)
 const STOCK_EXTRA_ITEMS = [
-  { id:101, cat:'brush', nameEn:'Interdental Brush XS' },
-  { id:102, cat:'brush', nameEn:'Interdental Brush S' },
-  { id:103, cat:'brush', nameEn:'Interdental Brush SS' },
-  { id:104, cat:'brush', nameEn:'Interdental Brush SSS' },
-  { id:105, cat:'brush', nameEn:'Interdental Brush M' },
-  { id:106, cat:'brush', nameEn:'Interdental Brush L' },
-  { id:107, cat:'brush', nameEn:'Interdental Brush Mix' },
+  { id:101, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush XS' },
+  { id:102, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush S' },
+  { id:103, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush SS' },
+  { id:104, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush SSS' },
+  { id:105, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush M' },
+  { id:106, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush L' },
+  { id:107, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush Mix' },
 ];
 const STOCK_LOOKUP = [...PRODUCTS, ...STOCK_EXTRA_ITEMS];
 // order: toothpastes (incl. kids paste) -> mouthwashes -> brushes (incl. kids brush + interdental sizes) -> flosses -> tongue cleaner
@@ -579,15 +583,23 @@ function selectStockSource(key, label, btnEl){
 
 function renderStockList(){
   let lastCat = null;
+  let lastSub = null;
   let html = '';
   STOCK_ITEMS.forEach(p=>{
     if(p.cat !== lastCat){
       html += `<div class="stock-cat-header">${STOCK_CAT_LABELS[p.cat]}</div>`;
       lastCat = p.cat;
+      lastSub = null;
+    }
+    if(p.sub && p.sub !== lastSub){
+      html += `<div class="stock-sub-header">${p.sub}</div>`;
+      lastSub = p.sub;
+    } else if(!p.sub){
+      lastSub = null;
     }
     const val = (stockData.items && stockData.items[p.id] != null) ? stockData.items[p.id] : 0;
     html += `
-      <div class="stock-row">
+      <div class="stock-row"${p.sub ? ' style="margin-inline-start:18px;"' : ''}>
         <span class="sname">${p.nameEn}</span>
         <div class="stock-stepper">
           <button type="button" class="stock-minus" data-id="${p.id}">−</button>
