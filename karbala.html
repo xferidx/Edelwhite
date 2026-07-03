@@ -303,6 +303,41 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .stock-warning.show{display:block;}
 .stock-empty-hint{font-size:.78rem; color:var(--silver-mid); text-align:center; padding:24px 0;}
 
+/* order → image generator */
+.img-modal .modal{max-width:640px;}
+.oi-meta{display:flex; flex-direction:column; gap:10px; margin-bottom:16px;}
+.oi-meta input{
+  width:100%; padding:11px 14px; border:1px solid var(--glass-border); border-radius:10px;
+  font-family:var(--font-ar); font-size:.85rem; background:rgba(255,255,255,.06); color:#fff;
+}
+.oi-list{max-height:340px; overflow-y:auto; border-top:1px solid var(--glass-border); padding-top:8px;}
+.oi-row{
+  display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px dashed var(--glass-border);
+}
+.oi-row img{width:38px; height:38px; border-radius:8px; object-fit:cover; flex-shrink:0; background:rgba(255,255,255,.05);}
+.oi-row .oi-badge{
+  width:38px; height:38px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-size:.62rem; font-weight:900; font-family:var(--font-en);
+}
+.oi-row .oi-names{flex:1; min-width:0;}
+.oi-row .oi-ar{font-size:.78rem; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.oi-row .oi-en{font-size:.62rem; color:var(--silver-mid); font-family:var(--font-en); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.oi-row .oi-stepper{
+  display:flex; align-items:center; border:1px solid var(--glass-border); border-radius:8px;
+  overflow:hidden; background:rgba(255,255,255,.04); flex-shrink:0;
+}
+.oi-row .oi-stepper button{width:24px; height:24px; font-size:13px; font-weight:800; color:var(--teal-light);}
+.oi-row .oi-stepper button:active{background:var(--teal); color:#fff;}
+.oi-row .oi-stepper input{
+  width:36px; text-align:center; border:none; background:transparent; color:#fff;
+  font-size:.75rem; font-weight:800; font-family:var(--font-en);
+}
+.oi-preview{margin-top:16px; text-align:center;}
+.oi-preview img{max-width:100%; border-radius:12px; border:1px solid var(--glass-border);}
+.oi-actions{display:flex; gap:8px; margin-top:14px;}
+.oi-actions .confirm-btn{margin-top:0;}
+.oi-actions .oi-download{background:linear-gradient(135deg,#25d366,#128c7e);}
+
 
 /* modal */
 .modal-bg{position:fixed; inset:0; background:rgba(10,4,4,.7); z-index:60; display:none; align-items:flex-end; justify-content:center;}
@@ -332,6 +367,7 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
     <span>🔓 وضع الإدارة مفعّل — اضغط على أي منتج لتغيير حالة توفره</span>
     <div style="display:flex; align-items:center; gap:8px;">
       <button class="stocks-btn-mgr" id="stocksBtn">📦 المخزون</button>
+      <button class="stocks-btn-mgr" id="orderImgBtn">🖼️ صورة طلب</button>
       <button id="mgrExit">خروج</button>
     </div>
   </div>
@@ -431,6 +467,23 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
     </div>
     <button class="confirm-btn" id="saveStockBtn" style="display:none;">💾 حفظ التحديث</button>
     <div class="stock-updated" id="stockUpdatedLine"></div>
+  </div>
+</div>
+
+<div class="modal-bg img-modal" id="orderImgModal">
+  <div class="modal">
+    <button class="close" id="closeOrderImg">✕</button>
+    <h3>تحويل طلب إلى صورة</h3>
+    <p style="font-size:.78rem;color:var(--silver-mid);margin-bottom:14px;">صورة بصور المنتجات والأسماء بالعربي والإنكليزي والكمية بس — مفيدة لإرسالها لعامل مخزن ما يعرف يقرأ عربي</p>
+    <div class="oi-meta">
+      <input type="text" id="oiStoreName" placeholder="اسم الزبون / الصيدلية (اختياري)">
+      <input type="text" id="oiSourceName" placeholder="المصدر — مثال: مكتب جذور (اختياري)">
+    </div>
+    <div class="oi-list" id="oiList"></div>
+    <div class="oi-actions">
+      <button class="confirm-btn" id="oiGenerateBtn">🖼️ إنشاء الصورة</button>
+    </div>
+    <div class="oi-preview" id="oiPreview"></div>
   </div>
 </div>
 
@@ -727,6 +780,213 @@ saveStockBtn.onclick = async ()=>{
   }
   saveStockBtn.disabled = false;
   saveStockBtn.textContent = '💾 حفظ التحديث';
+};
+
+/* ---------- order → picking image generator (manager only) ----------
+   Turns a set of quantities into a downloadable image showing each
+   product's PHOTO + Arabic name + English name + quantity — so a
+   warehouse worker who can't read Arabic/English can still pick the
+   order correctly just by matching photos and numbers. ---------- */
+const orderImgBtn = document.getElementById('orderImgBtn');
+const orderImgModal = document.getElementById('orderImgModal');
+const oiList = document.getElementById('oiList');
+const oiPreview = document.getElementById('oiPreview');
+const oiStoreName = document.getElementById('oiStoreName');
+const oiSourceName = document.getElementById('oiSourceName');
+
+function getOrderImageItems(){
+  const items = [];
+  PRODUCTS.forEach(p=>{
+    if(p.sizes){
+      p.sizes.forEach(s=>{
+        items.push({
+          key: p.id+'::'+s.key,
+          nameAr: p.nameAr + ' — ' + s.label,
+          nameEn: p.nameEn + ' ' + s.label,
+          img: p.img,
+          badgeColor: s.color, badgeText: s.text, badgeLabel: s.label
+        });
+      });
+    } else {
+      items.push({ key:String(p.id), nameAr:p.nameAr, nameEn:p.nameEn, img:p.img });
+    }
+  });
+  return items;
+}
+const OI_ITEMS = getOrderImageItems();
+const oiQty = {}; // independent from the customer cart — this is a standalone picking-list tool
+
+function renderOiList(){
+  oiList.innerHTML = OI_ITEMS.map(it => `
+    <div class="oi-row">
+      ${it.badgeColor
+        ? `<span class="oi-badge" style="${it.badgeColor==='mix'
+            ? `background:conic-gradient(from 0deg,#c7c8ce,#ff8a3d,#ff3366,#2f9bff,#ffd400,#3ecf8e,#c7c8ce);color:${it.badgeText};`
+            : `background:${it.badgeColor};color:${it.badgeText};`}">${it.badgeLabel}</span>`
+        : `<img src="${IMG_BASE}${it.img}" alt="">`}
+      <div class="oi-names">
+        <div class="oi-ar">${it.nameAr}</div>
+        <div class="oi-en">${it.nameEn}</div>
+      </div>
+      <div class="oi-stepper">
+        <button type="button" data-oi-act="plus" data-oi="${it.key}">+</button>
+        <input type="text" inputmode="numeric" data-oi-input="${it.key}" value="${oiQty[it.key]||0}">
+        <button type="button" data-oi-act="minus" data-oi="${it.key}">−</button>
+      </div>
+    </div>`).join('');
+
+  oiList.querySelectorAll('[data-oi-act]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.dataset.oi;
+      const cur = oiQty[key] || 0;
+      const next = btn.dataset.oiAct === 'plus' ? cur+1 : Math.max(0, cur-1);
+      oiQty[key] = next;
+      oiList.querySelector(`[data-oi-input="${key}"]`).value = next;
+    };
+  });
+  oiList.querySelectorAll('[data-oi-input]').forEach(inp=>{
+    const key = inp.dataset.oiInput;
+    inp.oninput = ()=>{
+      const raw = inp.value.replace(/[^0-9]/g, '');
+      const next = raw === '' ? 0 : Math.max(0, parseInt(raw, 10));
+      oiQty[key] = next;
+      inp.value = raw === '' ? '' : next;
+    };
+    inp.onblur = ()=>{ if(inp.value === '') inp.value = '0'; };
+    selectAllOnFocus(inp);
+  });
+}
+
+orderImgBtn.onclick = ()=>{
+  orderImgModal.classList.add('show');
+  oiPreview.innerHTML = '';
+  renderOiList();
+};
+document.getElementById('closeOrderImg').onclick = ()=> orderImgModal.classList.remove('show');
+
+function loadImg(src){
+  return new Promise((resolve)=>{
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> resolve(null); // one broken image shouldn't kill the whole generation
+    img.src = src;
+  });
+}
+
+document.getElementById('oiGenerateBtn').onclick = async ()=>{
+  const items = OI_ITEMS.filter(it => (oiQty[it.key]||0) > 0);
+  if(items.length === 0){
+    alert('اختر كمية لمنتج واحد على الأقل');
+    return;
+  }
+  const genBtn = document.getElementById('oiGenerateBtn');
+  genBtn.disabled = true;
+  genBtn.textContent = '🖼️ جارٍ إنشاء الصورة...';
+
+  const W = 800, rowH = 110, headerH = 150, footerH = 60;
+  const H = headerH + items.length*rowH + footerH;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#1a0808';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.font = '700 30px Arial';
+  ctx.fillText('طلب جملة — بيت المرجان', W/2, 45);
+  ctx.font = '400 18px Arial';
+  ctx.fillStyle = '#c4a0a0';
+  const store = oiStoreName.value.trim();
+  const source = oiSourceName.value.trim();
+  let sub = new Date().toLocaleDateString('ar-IQ');
+  if(store) sub = store + '   •   ' + sub;
+  if(source) sub = sub + '   •   ' + source;
+  ctx.fillText(sub, W/2, 78);
+  ctx.strokeStyle = 'rgba(255,255,255,.15)';
+  ctx.beginPath(); ctx.moveTo(40,105); ctx.lineTo(W-40,105); ctx.stroke();
+
+  const loadedImgs = await Promise.all(items.map(it => it.badgeColor ? Promise.resolve(null) : loadImg(IMG_BASE+it.img)));
+
+  items.forEach((it, i)=>{
+    const y = headerH + i*rowH;
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    ctx.beginPath(); ctx.moveTo(40, y+rowH-1); ctx.lineTo(W-40, y+rowH-1); ctx.stroke();
+
+    const imgSize = 80;
+    const imgX = W - 40 - imgSize;
+    const imgY = y + (rowH-imgSize)/2;
+
+    if(it.badgeColor){
+      ctx.beginPath();
+      ctx.arc(imgX+imgSize/2, imgY+imgSize/2, imgSize/2, 0, Math.PI*2);
+      if(it.badgeColor === 'mix'){
+        const grad = ctx.createLinearGradient(imgX, imgY, imgX+imgSize, imgY+imgSize);
+        grad.addColorStop(0,'#c7c8ce'); grad.addColorStop(0.2,'#ff8a3d'); grad.addColorStop(0.4,'#ff3366');
+        grad.addColorStop(0.6,'#2f9bff'); grad.addColorStop(0.8,'#ffd400'); grad.addColorStop(1,'#3ecf8e');
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = it.badgeColor;
+      }
+      ctx.fill();
+      ctx.fillStyle = it.badgeText;
+      ctx.font = '700 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(it.badgeLabel, imgX+imgSize/2, imgY+imgSize/2+7);
+    } else if(loadedImgs[i]){
+      ctx.save();
+      const r = 12;
+      ctx.beginPath();
+      ctx.moveTo(imgX+r, imgY);
+      ctx.arcTo(imgX+imgSize, imgY, imgX+imgSize, imgY+imgSize, r);
+      ctx.arcTo(imgX+imgSize, imgY+imgSize, imgX, imgY+imgSize, r);
+      ctx.arcTo(imgX, imgY+imgSize, imgX, imgY, r);
+      ctx.arcTo(imgX, imgY, imgX+imgSize, imgY, r);
+      ctx.closePath();
+      ctx.clip();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(imgX, imgY, imgSize, imgSize);
+      ctx.drawImage(loadedImgs[i], imgX, imgY, imgSize, imgSize);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,.08)';
+      ctx.fillRect(imgX, imgY, imgSize, imgSize);
+    }
+
+    const textRight = imgX - 20;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 24px Arial';
+    ctx.fillText(it.nameAr, textRight, y + rowH/2 - 6);
+    ctx.fillStyle = '#c4a0a0';
+    ctx.font = '400 16px Arial';
+    ctx.fillText(it.nameEn, textRight, y + rowH/2 + 20);
+
+    ctx.beginPath();
+    ctx.arc(75, y+rowH/2, 34, 0, Math.PI*2);
+    ctx.fillStyle = '#e03050';
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '700 28px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(String(oiQty[it.key]), 75, y+rowH/2+10);
+  });
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#c4a0a0';
+  ctx.font = '400 14px Arial';
+  ctx.fillText('بيت المرجان — الوكيل الحصري لـ edel+white في العراق', W/2, H-25);
+
+  const dataUrl = canvas.toDataURL('image/png');
+  oiPreview.innerHTML = `<img src="${dataUrl}" alt="order image">
+    <div class="oi-actions">
+      <a class="confirm-btn oi-download" href="${dataUrl}" download="order-${Date.now()}.png" style="text-decoration:none; display:flex;">⬇️ تنزيل الصورة</a>
+    </div>`;
+
+  genBtn.disabled = false;
+  genBtn.textContent = '🖼️ إنشاء الصورة';
 };
 
 /* ---------- tabs ---------- */
