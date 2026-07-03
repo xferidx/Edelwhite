@@ -466,7 +466,14 @@ const STOCK_ITEM_IDS = [
   13,14,15,16,
   20
 ];
-const STOCK_ITEMS = STOCK_ITEM_IDS.map(id => STOCK_LOOKUP.find(p => p.id === id));
+// Kids items are tagged cat:"kids" in the main catalog (needed for the customer ordering page),
+// but here in the Stocks panel we want them grouped under Toothpastes/Brushes instead —
+// override just for this list, without touching the original PRODUCTS objects.
+const STOCK_CAT_OVERRIDE = { 21: 'toothpaste', 22: 'brush' };
+const STOCK_ITEMS = STOCK_ITEM_IDS.map(id => {
+  const base = STOCK_LOOKUP.find(p => p.id === id);
+  return { ...base, cat: STOCK_CAT_OVERRIDE[id] || base.cat };
+});
 const STOCK_CAT_LABELS = { toothpaste:'Toothpastes', mouthwash:'Mouthwashes', brush:'Brushes', floss:'Flosses', device:'Tongue Cleaner' };
 
 /* ---------- manager mode ---------- */
