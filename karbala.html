@@ -110,6 +110,42 @@ main{max-width:1100px; margin:0 auto; padding:22px 18px 8px; position:relative; 
   font-size:15px; font-weight:800; font-family:var(--font-en);
 }
 
+/* interdental size picker */
+.easyflex-sizes{
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:6px 5px; margin-top:8px;
+}
+.easyflex-sizes.disabled{opacity:.35; pointer-events:none;}
+.ef-row{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:5px 1px; border-radius:9px; background:rgba(255,255,255,.03);
+}
+.ef-circle{
+  width:22px; height:22px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.44rem; font-weight:900; font-family:var(--font-en); letter-spacing:-.03em;
+  box-shadow:0 2px 5px rgba(0,0,0,.35);
+}
+.ef-circle.mix{
+  background:conic-gradient(from 0deg, #c7c8ce, #ff8a3d, #ff3366, #2f9bff, #ffd400, #3ecf8e, #c7c8ce);
+  font-size:.4rem;
+}
+.ef-stepper{
+  display:flex; align-items:center; border:1px solid var(--glass-border); border-radius:7px;
+  overflow:hidden; background:rgba(255,255,255,.04); width:100%;
+}
+.ef-stepper button{
+  width:16px; height:20px; font-size:11px; font-weight:800; color:var(--teal-light); flex-shrink:0;
+}
+.ef-stepper button:active{background:var(--teal); color:#fff;}
+.ef-stepper input{
+  width:100%; min-width:0; text-align:center; border:none; background:transparent; color:#fff;
+  font-size:.64rem; font-weight:800; font-family:var(--font-en); padding:0;
+}
+.ef-info-link{
+  display:block; text-align:center; margin-top:8px; font-size:.68rem; font-weight:700;
+  color:var(--teal-light); text-decoration:underline; text-underline-offset:2px;
+}
+
 /* order panel */
 .panel{
   max-width:1100px; margin:30px auto; padding:26px 22px; border-radius:20px;
@@ -428,7 +464,16 @@ const PRODUCTS = [
   { id:16, cat:"floss",      nameAr:"خيط الأسنان السوبر سوفت",             nameEn:"Super Soft Floss",              img:"Supersoftfloss.PNG" },
   { id:17, cat:"device",     nameAr:"برو ستيشن — خيط الأسنان المائي",     nameEn:"Pro Station Water Flosser",     img:"ProStationflosswe.jpeg" },
   { id:18, cat:"device",     nameAr:"فرشاة الأسنان الكهربائية الصوتية",   nameEn:"Sonic Electric Toothbrush",     img:"SonicBrsuh.PNG" },
-  { id:19, cat:"brush",      nameAr:"فرش بين الأسنان — إيزي فليكس",       nameEn:"Interdental Easy Flex",         img:"Interdenal-easyflex.PNG" },
+  { id:19, cat:"brush",      nameAr:"فرش بين الأسنان — إيزي فليكس",       nameEn:"Interdental Easy Flex",         img:"Interdenal-easyflex.PNG",
+    sizes:[
+      { key:'XS',  label:'XS',  color:'#c7c8ce', text:'#2b2b33' },
+      { key:'SSS', label:'SSS', color:'#ff8a3d', text:'#ffffff' },
+      { key:'SS',  label:'SS',  color:'#ff3366', text:'#ffffff' },
+      { key:'S',   label:'S',   color:'#2f9bff', text:'#ffffff' },
+      { key:'M',   label:'M',   color:'#ffd400', text:'#3a2c00' },
+      { key:'L',   label:'L',   color:'#3ecf8e', text:'#0b3a26' },
+      { key:'MIX', label:'Mix', color:'mix',      text:'#ffffff' },
+    ] },
   { id:20, cat:"device",     nameAr:"منظف اللسان",                        nameEn:"Tongue Cleaner",                img:"TongueCleaner.PNG" },
   { id:21, cat:"kids",       nameAr:"معجون الأطفال 7 فواكة",              nameEn:"7 Früchtli Kids Toothpaste",    img:"7Fruchtikids.jpeg" },
   { id:22, cat:"kids",       nameAr:"فرشاة الأطفال",                      nameEn:"Kids Brush",                    img:"Kidsbrush.PNG" },
@@ -449,13 +494,13 @@ const STOCK_SOURCES = [
 // order: toothpastes, mouthwashes, brushes, flosses, then tongue cleaner only (no other devices, no kids)
 // stock-only entries not sold individually in the main catalog (interdental brush sizes)
 const STOCK_EXTRA_ITEMS = [
-  { id:101, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush XS' },
-  { id:102, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush S' },
-  { id:103, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush SS' },
-  { id:104, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush SSS' },
-  { id:105, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush M' },
-  { id:106, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush L' },
-  { id:107, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush Mix' },
+  { id:101, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush XS',  color:'#c7c8ce' },
+  { id:102, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush S',   color:'#2f9bff' },
+  { id:103, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush SS',  color:'#ff3366' },
+  { id:104, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush SSS', color:'#ff8a3d' },
+  { id:105, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush M',   color:'#ffd400' },
+  { id:106, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush L',   color:'#3ecf8e' },
+  { id:107, cat:'brush', sub:'Easy Flex', nameEn:'Interdental Brush Mix', color:'mix' },
 ];
 const STOCK_LOOKUP = [...PRODUCTS, ...STOCK_EXTRA_ITEMS];
 // order: toothpastes (incl. kids paste) -> mouthwashes -> brushes (incl. kids brush + interdental sizes) -> flosses -> tongue cleaner
@@ -607,7 +652,7 @@ function renderStockList(){
     const val = (stockData.items && stockData.items[p.id] != null) ? stockData.items[p.id] : 0;
     html += `
       <div class="stock-row"${p.sub ? ' style="margin-inline-start:18px;"' : ''}>
-        <span class="sname">${p.nameEn}</span>
+        <span class="sname"${p.color ? (p.color==='mix' ? ' style="background:conic-gradient(from 0deg,#c7c8ce,#ff8a3d,#ff3366,#2f9bff,#ffd400,#3ecf8e,#c7c8ce);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;"' : ` style="color:${p.color};"`) : ''}>${p.nameEn}</span>
         <div class="stock-stepper">
           <button type="button" class="stock-minus" data-id="${p.id}">−</button>
           <input type="text" inputmode="numeric" id="stockqty-${p.id}" value="${val}">
@@ -708,6 +753,20 @@ function renderProducts(filter){
             <button data-act="minus" data-id="${p.id}">−</button>
           </div>`;
 
+      const sizesHtml = p.sizes ? `
+          <div class="easyflex-sizes${isOOS ? ' disabled':''}">
+            ${p.sizes.map(s => `
+              <div class="ef-row">
+                <span class="ef-circle${s.color==='mix' ? ' mix':''}" ${s.color!=='mix' ? `style="background:${s.color};color:${s.text};"` : `style="color:${s.text};"`}>${s.label}</span>
+                <div class="ef-stepper">
+                  <button type="button" data-ef-act="plus" data-ef="${p.id}::${s.key}">+</button>
+                  <input type="text" inputmode="numeric" data-ef-input="${p.id}::${s.key}" value="${qty[p.id+'::'+s.key]||0}">
+                  <button type="button" data-ef-act="minus" data-ef="${p.id}::${s.key}">−</button>
+                </div>
+              </div>`).join('')}
+          </div>
+          <a class="ef-info-link" href="${IMG_BASE}easyflex-sizes-guide.jpg" target="_blank" rel="noopener">ℹ️ دليل المقاسات — ما الفرق بينها؟</a>` : '';
+
       const mgrToggleHtml = isManager ? `
           <button class="mgr-toggle ${isOOS ? 'out-stock':'in-stock'}" data-toggle="${p.id}">
             ${isOOS ? '🔴 غير متوفر — اضغط للتفعيل' : '🟢 متوفر — اضغط للإيقاف'}
@@ -724,13 +783,20 @@ function renderProducts(filter){
             <div class="pname">${p.nameAr}</div>
             <div class="pname-en">${p.nameEn}</div>
           </div>
-          ${isOOS && !isManager ? '' : stepperHtml}
+          ${isOOS && !isManager ? '' : (p.sizes ? sizesHtml : stepperHtml)}
           ${mgrToggleHtml}
         </div>`;
       grid.appendChild(card);
     });
   });
   productArea.appendChild(grid);
+
+  function cardHasQty(id){
+    const p = PRODUCTS.find(pp=>pp.id===Number(id));
+    if(p && p.sizes) return p.sizes.some(s => (qty[id+'::'+s.key]||0) > 0);
+    return (qty[id]||0) > 0;
+  }
+
   productArea.querySelectorAll('button[data-act]').forEach(btn=>{
     btn.onclick = ()=>{
       const id = btn.dataset.id;
@@ -739,7 +805,7 @@ function renderProducts(filter){
       const next = btn.dataset.act === 'plus' ? cur+1 : Math.max(0, cur-1);
       qty[id] = next;
       document.getElementById('qty-'+id).value = next;
-      document.getElementById('card-'+id).classList.toggle('active-item', next>0);
+      document.getElementById('card-'+id).classList.toggle('active-item', cardHasQty(id));
       renderSummary();
     };
   });
@@ -751,7 +817,36 @@ function renderProducts(filter){
       if(outOfStock.has(Number(id))) next = 0;
       qty[id] = next;
       inp.value = raw === '' ? '' : next;
-      document.getElementById('card-'+id).classList.toggle('active-item', next>0);
+      document.getElementById('card-'+id).classList.toggle('active-item', cardHasQty(id));
+      renderSummary();
+    };
+    inp.onblur = ()=>{
+      if(inp.value === '') inp.value = '0';
+    };
+  });
+  productArea.querySelectorAll('[data-ef-act]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.dataset.ef; // e.g. "19::M"
+      const pid = key.split('::')[0];
+      if(outOfStock.has(Number(pid))) return;
+      const cur = qty[key] || 0;
+      const next = btn.dataset.efAct === 'plus' ? cur+1 : Math.max(0, cur-1);
+      qty[key] = next;
+      productArea.querySelector(`[data-ef-input="${key}"]`).value = next;
+      document.getElementById('card-'+pid).classList.toggle('active-item', cardHasQty(pid));
+      renderSummary();
+    };
+  });
+  productArea.querySelectorAll('[data-ef-input]').forEach(inp=>{
+    const key = inp.dataset.efInput;
+    const pid = key.split('::')[0];
+    inp.oninput = ()=>{
+      const raw = inp.value.replace(/[^0-9]/g, '');
+      let next = raw === '' ? 0 : Math.max(0, parseInt(raw, 10));
+      if(outOfStock.has(Number(pid))) next = 0;
+      qty[key] = next;
+      inp.value = raw === '' ? '' : next;
+      document.getElementById('card-'+pid).classList.toggle('active-item', cardHasQty(pid));
       renderSummary();
     };
     inp.onblur = ()=>{
@@ -775,17 +870,34 @@ document.querySelectorAll('.source-chip').forEach(chip=>{
   };
 });
 
+/* ---------- cart helper (handles both plain items and sized items like Easy Flex) ---------- */
+function getCartLines(){
+  const lines = [];
+  PRODUCTS.forEach(p=>{
+    if(p.sizes){
+      p.sizes.forEach(s=>{
+        const q = qty[p.id+'::'+s.key] || 0;
+        if(q > 0) lines.push({ label: `${p.nameAr} — ${s.label}`, qty: q });
+      });
+    } else {
+      const q = qty[p.id] || 0;
+      if(q > 0) lines.push({ label: p.nameAr, qty: q });
+    }
+  });
+  return lines;
+}
+
 /* ---------- summary ---------- */
 const summaryList = document.getElementById('summaryList');
 function renderSummary(){
-  const items = PRODUCTS.filter(p => qty[p.id] > 0);
+  const items = getCartLines();
   if(items.length === 0){
     summaryList.innerHTML = '<p class="empty-note">لم تختر أي منتج بعد — عد للأعلى واختر الكميات ↑</p>';
   } else {
-    summaryList.innerHTML = items.map(p => `
+    summaryList.innerHTML = items.map(it => `
       <div class="sum-row">
-        <span>${p.nameAr}</span>
-        <span class="qty">× ${qty[p.id]}</span>
+        <span>${it.label}</span>
+        <span class="qty">× ${it.qty}</span>
       </div>`).join('');
   }
   validateForm();
@@ -798,7 +910,7 @@ const confirmBtn = document.getElementById('confirmBtn');
 [nameInput, phoneInput].forEach(el => el.addEventListener('input', validateForm));
 
 function validateForm(){
-  const hasItems = PRODUCTS.some(p => qty[p.id] > 0);
+  const hasItems = getCartLines().length > 0;
   const hasName = nameInput.value.trim().length > 1;
   const hasPhone = phoneInput.value.trim().length >= 8;
   const hasSource = selectedSources.size > 0;
@@ -809,13 +921,13 @@ function validateForm(){
 const reviewModal = document.getElementById('reviewModal');
 const reviewBody = document.getElementById('reviewBody');
 confirmBtn.onclick = ()=>{
-  const items = PRODUCTS.filter(p => qty[p.id] > 0);
+  const items = getCartLines();
   reviewBody.innerHTML = `
     <div class="field"><strong>الاسم:</strong> ${nameInput.value.trim()}</div>
     <div class="field"><strong>الهاتف:</strong> <span dir="ltr">${phoneInput.value.trim()}</span></div>
     <div class="field"><strong>مصدر الشراء المفضّل:</strong> ${[...selectedSources].join('، ')}</div>
     <div class="summary-list">
-      ${items.map(p => `<div class="sum-row"><span>${p.nameAr}</span><span class="qty">× ${qty[p.id]}</span></div>`).join('')}
+      ${items.map(it => `<div class="sum-row"><span>${it.label}</span><span class="qty">× ${it.qty}</span></div>`).join('')}
     </div>`;
   reviewModal.classList.add('show');
 };
@@ -823,13 +935,13 @@ document.getElementById('closeReview').onclick = ()=> reviewModal.classList.remo
 
 /* ---------- send to whatsapp ---------- */
 document.getElementById('sendWaBtn').onclick = ()=>{
-  const items = PRODUCTS.filter(p => qty[p.id] > 0);
+  const items = getCartLines();
   let msg = `طلب جملة جديد — بيت المرجان (كربلاء)\n\n`;
   msg += `الاسم: ${nameInput.value.trim()}\n`;
   msg += `الهاتف: ${phoneInput.value.trim()}\n`;
   msg += `مصدر الشراء: ${[...selectedSources].join('، ')}\n\n`;
   msg += `المنتجات المطلوبة:\n`;
-  items.forEach(p => { msg += `- ${p.nameAr} × ${qty[p.id]}\n`; });
+  items.forEach(it => { msg += `- ${it.label} × ${it.qty}\n`; });
 
   const url = `https://wa.me/9647901313860?text=${encodeURIComponent(msg)}`;
   window.open(url, '_blank');
