@@ -112,12 +112,12 @@ main{max-width:1100px; margin:0 auto; padding:22px 18px 8px; position:relative; 
 
 /* interdental size picker */
 .easyflex-sizes{
-  display:grid; grid-template-columns:repeat(4, 1fr); gap:6px 5px; margin-top:8px;
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:8px 6px; margin-top:8px;
 }
 .easyflex-sizes.disabled{opacity:.35; pointer-events:none;}
 .ef-row{
-  display:flex; flex-direction:column; align-items:center; gap:3px;
-  padding:5px 1px; border-radius:9px; background:rgba(255,255,255,.03);
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:6px 2px; border-radius:9px; background:rgba(255,255,255,.03);
 }
 .ef-circle{
   width:22px; height:22px; border-radius:50%; flex-shrink:0;
@@ -129,18 +129,18 @@ main{max-width:1100px; margin:0 auto; padding:22px 18px 8px; position:relative; 
   background:conic-gradient(from 0deg, #c7c8ce, #ff8a3d, #ff3366, #2f9bff, #ffd400, #3ecf8e, #c7c8ce);
   font-size:.4rem;
 }
-.ef-stepper{
-  display:flex; align-items:center; border:1px solid var(--glass-border); border-radius:7px;
-  overflow:hidden; background:rgba(255,255,255,.04); width:100%;
+.ef-input{
+  width:34px; max-width:100%; text-align:center; border:1px solid var(--glass-border); border-radius:6px;
+  background:rgba(255,255,255,.07); color:#fff; font-size:.72rem; font-weight:800;
+  font-family:var(--font-en); padding:3px 0;
 }
-.ef-stepper button{
-  width:14px; height:20px; font-size:10px; font-weight:800; color:var(--teal-light); flex-shrink:0;
+.ef-btns{display:flex; gap:5px;}
+.ef-btns button{
+  width:17px; height:17px; border-radius:50%; flex-shrink:0;
+  font-size:10px; font-weight:800; line-height:1; color:var(--teal-light);
+  border:1px solid var(--glass-border); background:rgba(255,255,255,.05);
 }
-.ef-stepper button:active{background:var(--teal); color:#fff;}
-.ef-stepper input{
-  flex:1; min-width:18px; text-align:center; border:none; background:transparent; color:#fff;
-  font-size:.62rem; font-weight:800; font-family:var(--font-en); padding:0;
-}
+.ef-btns button:active{background:var(--teal); color:#fff; border-color:transparent;}
 .ef-info-link{
   display:block; text-align:center; margin-top:8px; font-size:.68rem; font-weight:700;
   color:var(--teal-light); text-decoration:underline; text-underline-offset:2px;
@@ -491,6 +491,15 @@ const PRODUCTS = [
 
 const qty = {};
 
+// Applied to every quantity input on the site (product cards, Easy Flex sizes, Stocks panel):
+// tapping/focusing the box selects its current text, so typing a digit replaces it
+// instantly instead of appending after it.
+function selectAllOnFocus(inp){
+  const doSelect = ()=> { try { inp.select(); } catch(e){} };
+  inp.addEventListener('focus', ()=> setTimeout(doSelect, 0));
+  inp.addEventListener('click', doSelect);
+}
+
 /* ---------- stock management data (per-distributor quantities) ---------- */
 const STOCK_SOURCES = [
   { key:'shifa',    label:'الشفاء' },
@@ -685,6 +694,7 @@ function renderStockList(){
     inp.onblur = ()=>{
       if(inp.value === '') inp.value = '0';
     };
+    selectAllOnFocus(inp);
   });
 
   if(stockData.updatedAt && typeof stockData.updatedAt.toDate === 'function'){
@@ -766,10 +776,10 @@ function renderProducts(filter){
             ${p.sizes.map(s => `
               <div class="ef-row">
                 <span class="ef-circle${s.color==='mix' ? ' mix':''}" ${s.color!=='mix' ? `style="background:${s.color};color:${s.text};"` : `style="color:${s.text};"`}>${s.label}</span>
-                <div class="ef-stepper">
-                  <button type="button" data-ef-act="plus" data-ef="${p.id}::${s.key}">+</button>
-                  <input type="text" inputmode="numeric" data-ef-input="${p.id}::${s.key}" value="${qty[p.id+'::'+s.key]||0}">
+                <input type="text" inputmode="numeric" class="ef-input" data-ef-input="${p.id}::${s.key}" value="${qty[p.id+'::'+s.key]||0}">
+                <div class="ef-btns">
                   <button type="button" data-ef-act="minus" data-ef="${p.id}::${s.key}">−</button>
+                  <button type="button" data-ef-act="plus" data-ef="${p.id}::${s.key}">+</button>
                 </div>
               </div>`).join('')}
           </div>
@@ -831,6 +841,7 @@ function renderProducts(filter){
     inp.onblur = ()=>{
       if(inp.value === '') inp.value = '0';
     };
+    selectAllOnFocus(inp);
   });
   productArea.querySelectorAll('[data-ef-act]').forEach(btn=>{
     btn.onclick = ()=>{
@@ -860,6 +871,7 @@ function renderProducts(filter){
     inp.onblur = ()=>{
       if(inp.value === '') inp.value = '0';
     };
+    selectAllOnFocus(inp);
   });
   productArea.querySelectorAll('[data-toggle]').forEach(btn=>{
     btn.onclick = ()=> toggleStock(Number(btn.dataset.toggle));
