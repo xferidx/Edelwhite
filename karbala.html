@@ -794,46 +794,57 @@ const oiPreview = document.getElementById('oiPreview');
 const oiStoreName = document.getElementById('oiStoreName');
 const oiSourceName = document.getElementById('oiSourceName');
 
-function getOrderImageItems(){
-  const items = [];
-  PRODUCTS.forEach(p=>{
-    if(p.sizes){
-      p.sizes.forEach(s=>{
-        items.push({
-          key: p.id+'::'+s.key,
-          nameAr: p.nameAr + ' — ' + s.label,
-          nameEn: p.nameEn + ' ' + s.label,
-          img: p.img,
-          badgeColor: s.color, badgeText: s.text, badgeLabel: s.label
-        });
-      });
-    } else {
-      items.push({ key:String(p.id), nameAr:p.nameAr, nameEn:p.nameEn, img:p.img });
-    }
-  });
-  return items;
+// Canvas-only info (Arabic name + photo/badge) needed for the generated image,
+// mapped onto the same categorized/colored list used by the Stocks panel.
+const p19 = PRODUCTS.find(p=>p.id===19);
+const EF_SIZE_BY_STOCKID = { 101:'XS', 102:'S', 103:'SS', 104:'SSS', 105:'M', 106:'L', 107:'MIX' };
+
+function getCanvasInfoForStockItem(item){
+  const sizeKeyFor = EF_SIZE_BY_STOCKID[item.id];
+  if(sizeKeyFor){
+    const sizeMeta = p19.sizes.find(s=>s.key===sizeKeyFor);
+    return {
+      nameAr: p19.nameAr + ' — ' + sizeMeta.label,
+      img: p19.img,
+      badgeColor: sizeMeta.color, badgeText: sizeMeta.text, badgeLabel: sizeMeta.label
+    };
+  }
+  const base = PRODUCTS.find(p=>p.id===item.id);
+  return { nameAr: base.nameAr, img: base.img };
 }
-const OI_ITEMS = getOrderImageItems();
+
+// Same items, same categories, same colors as the Stocks panel — just with the
+// extra Arabic/photo data attached (used only when actually generating the image).
+const OI_ITEMS = STOCK_ITEMS.map(item => ({ ...item, key:String(item.id), ...getCanvasInfoForStockItem(item) }));
 const oiQty = {}; // independent from the customer cart — this is a standalone picking-list tool
 
 function renderOiList(){
-  oiList.innerHTML = OI_ITEMS.map(it => `
-    <div class="oi-row">
-      ${it.badgeColor
-        ? `<span class="oi-badge" style="${it.badgeColor==='mix'
-            ? `background:conic-gradient(from 0deg,#c7c8ce,#ff8a3d,#ff3366,#2f9bff,#ffd400,#3ecf8e,#c7c8ce);color:${it.badgeText};`
-            : `background:${it.badgeColor};color:${it.badgeText};`}">${it.badgeLabel}</span>`
-        : `<img src="${IMG_BASE}${it.img}" alt="">`}
-      <div class="oi-names">
-        <div class="oi-ar">${it.nameAr}</div>
-        <div class="oi-en">${it.nameEn}</div>
-      </div>
-      <div class="oi-stepper">
-        <button type="button" data-oi-act="plus" data-oi="${it.key}">+</button>
-        <input type="text" inputmode="numeric" data-oi-input="${it.key}" value="${oiQty[it.key]||0}">
-        <button type="button" data-oi-act="minus" data-oi="${it.key}">−</button>
-      </div>
-    </div>`).join('');
+  let lastCat = null, lastSub = null;
+  let html = '';
+  OI_ITEMS.forEach(it=>{
+    if(it.cat !== lastCat){
+      html += `<div class="stock-cat-header">${STOCK_CAT_LABELS[it.cat]}</div>`;
+      lastCat = it.cat; lastSub = null;
+    }
+    if(it.sub && it.sub !== lastSub){
+      html += `<div class="stock-sub-header">${it.sub}</div>`;
+      lastSub = it.sub;
+    } else if(!it.sub){
+      lastSub = null;
+    }
+    html += `
+      <div class="stock-row"${it.sub ? ' style="margin-inline-start:18px;"' : ''}>
+        <span class="sname"${it.color ? (it.color==='mix'
+            ? ' style="background:conic-gradient(from 0deg,#c7c8ce,#ff8a3d,#ff3366,#2f9bff,#ffd400,#3ecf8e,#c7c8ce);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;"'
+            : ` style="color:${it.color};"`) : ''}>${it.nameEn}</span>
+        <div class="stock-stepper">
+          <button type="button" data-oi-act="minus" data-oi="${it.key}">−</button>
+          <input type="text" inputmode="numeric" data-oi-input="${it.key}" value="${oiQty[it.key]||0}">
+          <button type="button" data-oi-act="plus" data-oi="${it.key}">+</button>
+        </div>
+      </div>`;
+  });
+  oiList.innerHTML = html;
 
   oiList.querySelectorAll('[data-oi-act]').forEach(btn=>{
     btn.onclick = ()=>{
@@ -884,7 +895,7 @@ document.getElementById('oiGenerateBtn').onclick = async ()=>{
   genBtn.disabled = true;
   genBtn.textContent = '🖼️ جارٍ إنشاء الصورة...';
 
-  const W = 800, rowH = 110, headerH = 150, footerH = 60;
+  const W = 900, rowH = 210, headerH = 160, footerH = 60;
   const H = headerH + items.length*rowH + footerH;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
@@ -915,7 +926,7 @@ document.getElementById('oiGenerateBtn').onclick = async ()=>{
     ctx.strokeStyle = 'rgba(255,255,255,.08)';
     ctx.beginPath(); ctx.moveTo(40, y+rowH-1); ctx.lineTo(W-40, y+rowH-1); ctx.stroke();
 
-    const imgSize = 80;
+    const imgSize = 170;
     const imgX = W - 40 - imgSize;
     const imgY = y + (rowH-imgSize)/2;
 
@@ -932,12 +943,12 @@ document.getElementById('oiGenerateBtn').onclick = async ()=>{
       }
       ctx.fill();
       ctx.fillStyle = it.badgeText;
-      ctx.font = '700 20px Arial';
+      ctx.font = '700 42px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(it.badgeLabel, imgX+imgSize/2, imgY+imgSize/2+7);
+      ctx.fillText(it.badgeLabel, imgX+imgSize/2, imgY+imgSize/2+15);
     } else if(loadedImgs[i]){
       ctx.save();
-      const r = 12;
+      const r = 20;
       ctx.beginPath();
       ctx.moveTo(imgX+r, imgY);
       ctx.arcTo(imgX+imgSize, imgY, imgX+imgSize, imgY+imgSize, r);
@@ -955,23 +966,23 @@ document.getElementById('oiGenerateBtn').onclick = async ()=>{
       ctx.fillRect(imgX, imgY, imgSize, imgSize);
     }
 
-    const textRight = imgX - 20;
+    const textRight = imgX - 24;
     ctx.textAlign = 'right';
     ctx.fillStyle = '#ffffff';
-    ctx.font = '700 24px Arial';
-    ctx.fillText(it.nameAr, textRight, y + rowH/2 - 6);
+    ctx.font = '700 32px Arial';
+    ctx.fillText(it.nameAr, textRight, y + rowH/2 - 10);
     ctx.fillStyle = '#c4a0a0';
-    ctx.font = '400 16px Arial';
-    ctx.fillText(it.nameEn, textRight, y + rowH/2 + 20);
+    ctx.font = '400 20px Arial';
+    ctx.fillText(it.nameEn, textRight, y + rowH/2 + 26);
 
     ctx.beginPath();
-    ctx.arc(75, y+rowH/2, 34, 0, Math.PI*2);
+    ctx.arc(85, y+rowH/2, 46, 0, Math.PI*2);
     ctx.fillStyle = '#e03050';
     ctx.fill();
     ctx.fillStyle = '#ffffff';
-    ctx.font = '700 28px Arial';
+    ctx.font = '700 38px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(String(oiQty[it.key]), 75, y+rowH/2+10);
+    ctx.fillText(String(oiQty[it.key]), 85, y+rowH/2+13);
   });
 
   ctx.textAlign = 'center';
