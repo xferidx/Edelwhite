@@ -2773,7 +2773,7 @@ function renderProducts(cat = 'all') {
 
     const footerHtml = p.sizes ? `
         <div class="ef-price-note">${p.price.toLocaleString()} ${priceLabel} / ${currentLang==='ar' ? 'قطعة' : 'piece'}</div>
-        <a class="ef-guide-link" href="easyflex.sizes.png" target="_blank" rel="noopener">📖 ${currentLang==='ar' ? 'دليل المقاسات — ما الفرق بينها؟' : "Size Guide — What's the difference?"}</a>
+        <a class="ef-guide-link" href="easyflex-sizes-guide.jpg" target="_blank" rel="noopener">📖 ${currentLang==='ar' ? 'دليل المقاسات — ما الفرق بينها؟' : "Size Guide — What's the difference?"}</a>
         <div class="easyflex-sizes">
           ${p.sizes.map(s => {
             const cartKey = p.id + '::' + s.key;
