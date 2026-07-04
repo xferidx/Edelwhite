@@ -462,11 +462,13 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
     <p style="font-size:.78rem;color:var(--silver-mid);margin-bottom:16px;">اختر المصدر ثم عدّل كمية كل منتج متوفرة عنده</p>
     <div class="stock-sources" id="stockSources"></div>
     <div class="stock-warning" id="stockWarning">⚠️ غير متصل بالخادم حالياً — التعديلات ما راح تنحفظ. تأكد من اتصال الإنترنت وأعد فتح النافذة.</div>
+    <button class="confirm-btn" id="shareStockImgBtn" style="display:none; background:linear-gradient(135deg,#25d366,#128c7e); margin-bottom:14px;">📤 مشاركة المخزون كصورة</button>
     <div id="stockListArea">
       <p class="stock-empty-hint">اختر مصدر من الأعلى لعرض وتعديل مخزونه</p>
     </div>
     <button class="confirm-btn" id="saveStockBtn" style="display:none;">💾 حفظ التحديث</button>
     <div class="stock-updated" id="stockUpdatedLine"></div>
+    <div class="oi-preview" id="stockSharePreview"></div>
   </div>
 </div>
 
@@ -661,8 +663,11 @@ const stockListArea = document.getElementById('stockListArea');
 const stockWarning = document.getElementById('stockWarning');
 const saveStockBtn = document.getElementById('saveStockBtn');
 const stockUpdatedLine = document.getElementById('stockUpdatedLine');
+const shareStockImgBtn = document.getElementById('shareStockImgBtn');
+const stockSharePreview = document.getElementById('stockSharePreview');
 
 let currentStockSource = null;
+let currentStockSourceLabel = null;
 let stockUnsub = null;
 let stockData = { items:{}, updatedAt:null };
 
@@ -682,8 +687,10 @@ document.getElementById('closeStock').onclick = ()=>{
 
 function selectStockSource(key, label, btnEl){
   currentStockSource = key;
+  currentStockSourceLabel = label;
   document.querySelectorAll('.stock-src-btn').forEach(b=>b.classList.remove('active'));
   btnEl.classList.add('active');
+  stockSharePreview.innerHTML = '';
 
   if(stockUnsub){ stockUnsub(); stockUnsub = null; }
 
@@ -691,11 +698,13 @@ function selectStockSource(key, label, btnEl){
     stockWarning.classList.add('show');
     stockListArea.innerHTML = '<p class="stock-empty-hint">غير متصل بالخادم — تعذّر تحميل المخزون</p>';
     saveStockBtn.style.display = 'none';
+    shareStockImgBtn.style.display = 'none';
     return;
   }
   stockWarning.classList.remove('show');
   stockListArea.innerHTML = '<p class="stock-empty-hint">جارٍ التحميل...</p>';
   saveStockBtn.style.display = 'block';
+  shareStockImgBtn.style.display = 'block';
 
   stockUnsub = window.__subscribeStockSource(key, (data)=>{
     stockData = data;
@@ -998,6 +1007,143 @@ document.getElementById('oiGenerateBtn').onclick = async ()=>{
 
   genBtn.disabled = false;
   genBtn.textContent = '🖼️ إنشاء الصورة';
+};
+
+/* ---------- Stocks panel → share current source's stock levels as an image ----------
+   English-only, LTR, small photos, quantity number on the left — meant to be a
+   quick shareable snapshot of one distributor's stock. Zero-stock items are
+   still shown (not skipped), since "0" is itself useful information here. ---------- */
+const SHARE_SECTIONS = [
+  { label:'TOOTHPASTES', ids:[1,2,3,4,21] },
+  { label:'MOUTHWASHES', ids:[5,6,23] },
+  { label:'BRUSHES',     ids:[7,8,9,10,11,12,22] },
+  { label:'EASY FLEX',   ids:[101,102,103,104,105,106,107] },
+  { label:'FLOSSES',     ids:[13,14,15,16] },
+  { label:'DEVICES',     ids:[20] },
+];
+
+shareStockImgBtn.onclick = async ()=>{
+  if(!currentStockSource){ return; }
+  shareStockImgBtn.disabled = true;
+  shareStockImgBtn.textContent = '📤 جارٍ إنشاء الصورة...';
+  stockSharePreview.innerHTML = '';
+
+  // read whatever is currently shown in the boxes right now (saved or not)
+  const liveQty = {};
+  SHARE_SECTIONS.forEach(sec => sec.ids.forEach(id=>{
+    const el = document.getElementById('stockqty-'+id);
+    liveQty[id] = el ? Math.max(0, parseInt(el.value, 10) || 0) : (stockData.items && stockData.items[id]) || 0;
+  }));
+
+  const W = 640, photoSize = 44, rowH = 60, sectionH = 44, headerH = 110, footerH = 40;
+  const totalRows = SHARE_SECTIONS.reduce((n,s)=>n+s.ids.length, 0);
+  const H = headerH + SHARE_SECTIONS.length*sectionH + totalRows*rowH + footerH;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#1a0808';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 26px Arial';
+  ctx.fillText('Bait Al Murjan — Stock Levels', 30, 42);
+  ctx.fillStyle = '#c4a0a0';
+  ctx.font = '400 16px Arial';
+  ctx.fillText((currentStockSourceLabel||currentStockSource) + '   •   ' + new Date().toLocaleDateString('en-GB'), 30, 68);
+  ctx.strokeStyle = 'rgba(255,255,255,.15)';
+  ctx.beginPath(); ctx.moveTo(30,88); ctx.lineTo(W-30,88); ctx.stroke();
+
+  // preload every product/size photo (Easy Flex sizes use their colored badge instead)
+  const allItemsFlat = SHARE_SECTIONS.flatMap(sec => sec.ids.map(id => OI_ITEMS.find(it=>it.id===id)));
+  const loadedImgs = await Promise.all(allItemsFlat.map(it => it.badgeColor ? Promise.resolve(null) : loadImg(IMG_BASE+it.img)));
+
+  let y = headerH;
+  let flatIdx = 0;
+  SHARE_SECTIONS.forEach(sec=>{
+    ctx.fillStyle = 'rgba(224,48,80,.16)';
+    ctx.fillRect(20, y, W-40, sectionH-8);
+    ctx.fillStyle = '#ff8ea3';
+    ctx.font = '700 15px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(sec.label, 32, y + sectionH/2 + 1);
+    y += sectionH;
+
+    sec.ids.forEach(id=>{
+      const it = allItemsFlat[flatIdx];
+      const img = loadedImgs[flatIdx];
+      flatIdx++;
+
+      ctx.strokeStyle = 'rgba(255,255,255,.07)';
+      ctx.beginPath(); ctx.moveTo(30, y+rowH-1); ctx.lineTo(W-30, y+rowH-1); ctx.stroke();
+
+      // quantity — left-most, big and bold
+      ctx.textAlign = 'left';
+      ctx.fillStyle = liveQty[id] > 0 ? '#ffffff' : '#7a5a5a';
+      ctx.font = '700 24px Arial';
+      ctx.fillText(String(liveQty[id]), 30, y + rowH/2 + 8);
+
+      // small photo or size badge
+      const px = 85, py = y + (rowH-photoSize)/2;
+      if(it.badgeColor){
+        ctx.beginPath();
+        ctx.arc(px+photoSize/2, py+photoSize/2, photoSize/2, 0, Math.PI*2);
+        if(it.badgeColor === 'mix'){
+          const grad = ctx.createLinearGradient(px, py, px+photoSize, py+photoSize);
+          grad.addColorStop(0,'#c7c8ce'); grad.addColorStop(0.2,'#ff8a3d'); grad.addColorStop(0.4,'#ff3366');
+          grad.addColorStop(0.6,'#2f9bff'); grad.addColorStop(0.8,'#ffd400'); grad.addColorStop(1,'#3ecf8e');
+          ctx.fillStyle = grad;
+        } else { ctx.fillStyle = it.badgeColor; }
+        ctx.fill();
+        ctx.fillStyle = it.badgeText;
+        ctx.font = '700 11px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(it.badgeLabel, px+photoSize/2, py+photoSize/2+4);
+        ctx.textAlign = 'left';
+      } else if(img){
+        ctx.save();
+        const r = 8;
+        ctx.beginPath();
+        ctx.moveTo(px+r, py);
+        ctx.arcTo(px+photoSize, py, px+photoSize, py+photoSize, r);
+        ctx.arcTo(px+photoSize, py+photoSize, px, py+photoSize, r);
+        ctx.arcTo(px, py+photoSize, px, py, r);
+        ctx.arcTo(px, py, px+photoSize, py, r);
+        ctx.closePath();
+        ctx.clip();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(px, py, photoSize, photoSize);
+        ctx.drawImage(img, px, py, photoSize, photoSize);
+        ctx.restore();
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,.08)';
+        ctx.fillRect(px, py, photoSize, photoSize);
+      }
+
+      // English name
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '400 16px Arial';
+      ctx.fillText(it.nameEn, px + photoSize + 16, y + rowH/2 + 6);
+
+      y += rowH;
+    });
+  });
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#c4a0a0';
+  ctx.font = '400 13px Arial';
+  ctx.fillText('Bait Al Murjan — exclusive edel+white distributor in Iraq', W/2, H-16);
+
+  const dataUrl = canvas.toDataURL('image/png');
+  stockSharePreview.innerHTML = `<img src="${dataUrl}" alt="stock levels">
+    <div class="oi-actions">
+      <a class="confirm-btn oi-download" href="${dataUrl}" download="stock-${currentStockSource}-${Date.now()}.png" style="text-decoration:none; display:flex;">⬇️ تنزيل الصورة</a>
+    </div>`;
+
+  shareStockImgBtn.disabled = false;
+  shareStockImgBtn.textContent = '📤 مشاركة المخزون كصورة';
 };
 
 /* ---------- tabs ---------- */
