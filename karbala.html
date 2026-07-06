@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>طلبات الجملة — كربلاء | بيت المرجان × edel+white</title>
+<link rel="manifest" href="manifest-karbala.json">
+<meta name="theme-color" content="#1a0808">
+<link rel="apple-touch-icon" href="app-icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -202,6 +205,29 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
   backdrop-filter:blur(20px); border-top:1px solid var(--glass-border);
   display:flex; gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom));
 }
+
+/* Install app (Add to Home Screen) floating button */
+.install-app-btn{
+  position: fixed;
+  bottom: 84px;
+  left: 16px;
+  display: none;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, var(--teal), #c02040);
+  color: #fff;
+  padding: 11px 18px;
+  border-radius: 100px;
+  font-size: .78rem;
+  font-weight: 800;
+  font-family: var(--font-ar);
+  z-index: 55;
+  box-shadow: 0 8px 26px rgba(224,48,80,.4);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.install-app-btn.show{ display: flex; }
 .fab{
   flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
   padding:9px 4px; border-radius:12px; font-size:.68rem; font-weight:700; border:1px solid var(--glass-border);
@@ -419,6 +445,8 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 
   <button class="confirm-btn" id="confirmBtn" disabled>✅ مراجعة الطلب وتأكيده</button>
 </section>
+
+<button class="install-app-btn" id="installAppBtn">📲 ثبّت التطبيق</button>
 
 <div class="fab-bar">
   <a class="fab call" href="tel:+9647702714286">📞 اتصال مباشر<span class="num">0770 271 4286</span></a>
@@ -1400,6 +1428,39 @@ document.getElementById('sendWaBtn').onclick = ()=>{
 };
 
 document.getElementById('newOrderBtn').onclick = ()=> location.reload();
+
+/* ---------- install app (Add to Home Screen) ---------- */
+(function(){
+  const installBtn = document.getElementById('installAppBtn');
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.classList.add('show');
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.classList.remove('show');
+    } else {
+      alert('لتثبيت التطبيق على آيفون: اضغط زر المشاركة ⬆️ بالمتصفح، ثم اختر "إضافة إلى الشاشة الرئيسية"');
+    }
+  });
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+  if (isIOS && !isStandalone) {
+    installBtn.classList.add('show');
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
 
 /* ---------- initial render (must come last — depends on everything above) ---------- */
 renderProducts('all');
