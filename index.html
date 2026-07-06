@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>بيت المرجان | الوكيل الحصري لـ edel+white السويسرية في العراق</title>
+<link rel="manifest" href="manifest-main.json">
+<meta name="theme-color" content="#1a0808">
+<link rel="apple-touch-icon" href="app-icon-192.png">
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GR2437JFN2"></script>
@@ -1213,6 +1216,32 @@ button { cursor: pointer; border: none; outline: none; background: none; font-fa
 .scroll-top.show { opacity: 1; transform: translateY(0); }
 .scroll-top:hover { transform: translateY(-3px); }
 
+/* Install app (Add to Home Screen) floating button */
+.install-app-btn{
+  position: fixed;
+  bottom: 32px;
+  left: 90px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--teal), var(--blue-accent));
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-family: var(--font-ar);
+  z-index: 900;
+  box-shadow: 0 8px 30px rgba(224,48,80,0.4);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.install-app-btn.show{ display: flex; }
+@media (max-width: 640px){
+  .install-app-btn{ left: 16px; bottom: 90px; font-size: 0.78rem; padding: 10px 16px; }
+}
+
 /* Cart badge */
 .cart-badge {
   position: fixed;
@@ -1421,6 +1450,9 @@ button { cursor: pointer; border: none; outline: none; background: none; font-fa
 
 <!-- Scroll to top -->
 <div class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<!-- Install app (Add to Home Screen) -->
+<button class="install-app-btn" id="installAppBtn">📲 <span id="installAppBtnTxt">ثبّت التطبيق</span></button>
 
 <!-- ===================== HERO ===================== -->
 <section class="hero section" id="hero">
@@ -2211,6 +2243,7 @@ const translations = {
     'cta-wa-txt': 'واتساب',
     'cta-explore-txt': 'منتجاتنا',
     'cta-location-txt': 'موقعنا',
+    'installAppBtnTxt': 'ثبّت التطبيق',
     'stat1': 'منتجاً متكاملاً',
     'stat2': 'تصنيع سويسري',
     'stat3': 'حماية مستمرة',
@@ -2323,6 +2356,7 @@ const translations = {
     'cta-wa-txt': 'WhatsApp',
     'cta-explore-txt': 'Our Products',
     'cta-location-txt': 'Our Location',
+    'installAppBtnTxt': 'Install App',
     'stat1': 'Specialized Products',
     'stat2': 'Swiss Made',
     'stat3': 'Continuous Protection',
@@ -2773,7 +2807,7 @@ function renderProducts(cat = 'all') {
 
     const footerHtml = p.sizes ? `
         <div class="ef-price-note">${p.price.toLocaleString()} ${priceLabel} / ${currentLang==='ar' ? 'قطعة' : 'piece'}</div>
-        <a class="ef-guide-link" href="easyflex-sizes-guide.jpg" target="_blank" rel="noopener">📖 ${currentLang==='ar' ? 'دليل المقاسات — ما الفرق بينها؟' : "Size Guide — What's the difference?"}</a>
+        <a class="ef-guide-link" href="easyflex.sizes.png" target="_blank" rel="noopener">📖 ${currentLang==='ar' ? 'دليل المقاسات — ما الفرق بينها؟' : "Size Guide — What's the difference?"}</a>
         <div class="easyflex-sizes">
           ${p.sizes.map(s => {
             const cartKey = p.id + '::' + s.key;
@@ -3086,6 +3120,47 @@ gsap.fromTo('.feature-card',
   const el = document.getElementById(id);
   if (el) selectAllOnFocus(el);
 });
+
+// =============================================
+// INSTALL APP (Add to Home Screen)
+// =============================================
+(function(){
+  const installBtn = document.getElementById('installAppBtn');
+  let deferredPrompt = null;
+
+  // Chrome/Android/Edge: real install prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.classList.add('show');
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.classList.remove('show');
+    } else {
+      // iOS Safari has no install prompt API — show manual instructions
+      alert(currentLang === 'ar'
+        ? 'لتثبيت التطبيق على آيفون: اضغط زر المشاركة ⬆️ بالمتصفح، ثم اختر "إضافة إلى الشاشة الرئيسية"'
+        : 'To install on iPhone: tap the Share button ⬆️ in your browser, then choose "Add to Home Screen"');
+    }
+  });
+
+  // iOS doesn't fire beforeinstallprompt at all, so show the button anyway
+  // (as long as the site isn't already running as an installed app)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+  if (isIOS && !isStandalone) {
+    installBtn.classList.add('show');
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
 
 // =============================================
 // INIT
