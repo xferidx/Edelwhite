@@ -188,6 +188,42 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
   color:#ff5577; font-size:.7rem; font-weight:900;
 }
 .sum-remove:active{background:var(--teal); color:#fff;}
+
+/* price code panel (review modal) */
+.price-code-row{
+  display:flex; gap:8px; margin:14px 0 6px;
+}
+.price-code-row input{
+  flex:1; padding:11px 14px; border:1px solid var(--glass-border); border-radius:10px;
+  background:rgba(255,255,255,.06); color:#fff; font-size:.85rem; font-family:var(--font-en);
+  text-align:center; letter-spacing:.1em;
+}
+.price-code-row button{
+  padding:11px 18px; border-radius:10px; background:linear-gradient(135deg,var(--teal),#c02040);
+  color:#fff; font-weight:800; font-size:.8rem; white-space:nowrap;
+}
+.price-code-err{color:var(--teal-light); font-size:.75rem; margin:0 0 8px;}
+.rv-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:9px 0; border-bottom:1px dashed var(--glass-border);
+}
+.rv-name{font-size:.82rem; flex:1; min-width:0;}
+.rv-stepper{
+  display:flex; align-items:center; gap:0; border:1px solid var(--glass-border); border-radius:9px;
+  overflow:hidden; background:rgba(255,255,255,.04); flex-shrink:0;
+}
+.rv-stepper button{width:28px; height:28px; font-size:16px; font-weight:800; color:var(--teal-light);}
+.rv-stepper button:active{background:var(--teal); color:#fff;}
+.rv-stepper .rv-qty{width:30px; text-align:center; font-weight:800; font-size:.82rem;}
+.rv-price{font-size:.78rem; color:var(--silver-mid); text-align:left; direction:ltr; flex-shrink:0; min-width:92px;}
+.rv-price .rv-orig{text-decoration:line-through; color:rgba(255,255,255,.35); margin-left:6px;}
+.rv-price .rv-final{color:var(--teal-light); font-weight:800;}
+.rv-total{
+  margin-top:14px; padding:12px 14px; border-radius:12px; background:rgba(224,48,80,.1);
+  border:1px solid rgba(224,48,80,.3); font-size:.85rem; display:flex; flex-direction:column; gap:6px;
+}
+.rv-total strong{font-family:var(--font-en);}
+.rv-note{font-size:.72rem; color:var(--silver-mid); margin-top:8px; line-height:1.7;}
 .empty-note{font-size:.78rem; color:var(--silver-mid); text-align:center; padding:18px 0;}
 
 .confirm-btn{
@@ -571,6 +607,32 @@ const PRODUCTS = [
   { id:23, cat:"mouthwash",  nameAr:"بيريو بالانس — سبراي اللثة",         nameEn:"Perio Balance Spray",           img:"periospray.png" },
   { id:24, cat:"device",     nameAr:"باور سبا — جهاز ري الفم",            nameEn:"Power Spa Oral Irrigator",      img:"Powerspa.jpeg" },
 ];
+
+/* ---------- wholesale price list (mكتب جذور vs other pharmacies) ----------
+   Only revealed in the review screen after a valid price code is entered.
+   Perio Balance Spray (id 23) has no price on file yet. ---------- */
+const PRICE_DATA = {
+  1:  { jozor:9750,  other:9330  }, // Dual White Antiplaque
+  2:  { jozor:9750,  other:9330  }, // CareForte
+  3:  { jozor:9750,  other:9330  }, // Osmotonic
+  4:  { jozor:11250, other:10895 }, // Stop Sensitive
+  5:  { jozor:11250, other:10850 }, // Stop Irritation Mouth Wash
+  6:  { jozor:11250, other:10895 }, // Fresh & Protect Mouth Wash
+  7:  { jozor:6000,  other:5800  }, // Stain Eraser Brush
+  8:  { jozor:6000,  other:5800  }, // Intensive Brush
+  9:  { jozor:6000,  other:5800  }, // Ultra Soft Brush
+  10: { jozor:6000,  other:5800  }, // Pro Gum Brush
+  11: { jozor:6000,  other:5800  }, // Pro Ortho Brush
+  12: { jozor:8000,  other:7550  }, // 3D Curl Brush
+  13: { jozor:6000,  other:5800  }, // EasyTape Floss
+  14: { jozor:6000,  other:5800  }, // Expanding Floss
+  15: { jozor:6000,  other:5800  }, // Woven Floss
+  16: { jozor:8000,  other:5800  }, // Super Soft Floss
+  19: { jozor:8000,  other:7550  }, // Interdental Easy Flex (all sizes, same price)
+  20: { jozor:5000,  other:4755  }, // Tongue Cleaner
+  21: { jozor:10750, other:10450 }, // 7 Früchtli Kids Toothpaste
+  22: { jozor:5000,  other:4620  }, // Kids Brush
+};
 
 const qty = {};
 
@@ -1397,15 +1459,114 @@ function validateForm(){
 /* ---------- review modal ---------- */
 const reviewModal = document.getElementById('reviewModal');
 const reviewBody = document.getElementById('reviewBody');
-confirmBtn.onclick = ()=>{
+let activePriceCode = null; // null | 'j123' | 'm123'
+
+function getUnitPrice(pid){
+  const pd = PRICE_DATA[pid];
+  if(!pd) return null;
+  if(activePriceCode === 'j123'){
+    const original = pd.jozor;
+    const final = Math.round(original * 0.9);
+    return { original, final };
+  }
+  if(activePriceCode === 'm123'){
+    return { original: pd.other, final: pd.other };
+  }
+  return null;
+}
+
+function renderReviewBody(){
   const items = getCartLines();
+
+  let totalsHtml = '';
+  if(activePriceCode && items.length){
+    let totalOriginal = 0, totalFinal = 0, missing = false;
+    items.forEach(it=>{
+      const price = getUnitPrice(it.pid);
+      if(price){ totalOriginal += price.original*it.qty; totalFinal += price.final*it.qty; }
+      else missing = true;
+    });
+    if(activePriceCode === 'j123'){
+      totalsHtml = `
+        <div class="rv-total">
+          <div>المجموع قبل الخصم: <strong>${totalOriginal.toLocaleString()} د.ع</strong></div>
+          <div>المجموع بعد خصم 10%: <strong style="color:var(--teal-light);">${totalFinal.toLocaleString()} د.ع</strong></div>
+        </div>
+        <p class="rv-note">⚠️ نسبة الخصم 10% سارية فقط إذا كان الدفع خلال 30 يوماً من تاريخ الطلب.</p>`;
+    } else {
+      totalsHtml = `
+        <div class="rv-total">
+          <div>المجموع التقريبي: <strong style="color:var(--teal-light);">${totalFinal.toLocaleString()} د.ع</strong></div>
+        </div>
+        <p class="rv-note">ℹ️ هذه الأسعار تقريبية كون السعر يختلف من مذخر إلى آخر، والخصم كذلك.</p>`;
+    }
+    if(missing){
+      totalsHtml += `<p class="rv-note" style="color:#ffb020;">⚠️ بعض المنتجات ما إلها سعر مسجّل بعد — تواصل معنا لتأكيد سعرها.</p>`;
+    }
+  }
+
   reviewBody.innerHTML = `
     <div class="field"><strong>الاسم:</strong> ${nameInput.value.trim()}</div>
     <div class="field"><strong>الهاتف:</strong> <span dir="ltr">${phoneInput.value.trim()}</span></div>
     <div class="field"><strong>مصدر الشراء المفضّل:</strong> ${[...selectedSources].join('، ')}</div>
+
+    <div class="price-code-row">
+      <input type="text" id="priceCodeInput" placeholder="رمز الأسعار (اختياري)" value="${activePriceCode || ''}">
+      <button type="button" id="priceCodeApplyBtn">${activePriceCode ? 'إلغاء' : 'تفعيل'}</button>
+    </div>
+    <div id="priceCodeErr"></div>
+
     <div class="summary-list">
-      ${items.map(it => `<div class="sum-row"><span>${it.label}</span><span class="qty">× ${it.qty}</span></div>`).join('')}
-    </div>`;
+      ${items.length === 0 ? '<p class="empty-note">لا توجد منتجات بعد</p>' : items.map(it => {
+        const price = activePriceCode ? getUnitPrice(it.pid) : null;
+        const priceHtml = price
+          ? (activePriceCode === 'j123'
+              ? `<div class="rv-price"><span class="rv-orig">${price.original.toLocaleString()}</span><span class="rv-final">${price.final.toLocaleString()}</span></div>`
+              : `<div class="rv-price"><span class="rv-final">${price.final.toLocaleString()}</span></div>`)
+          : '';
+        return `
+        <div class="rv-row">
+          <span class="rv-name">${it.label}</span>
+          <div class="rv-stepper">
+            <button type="button" data-rv-act="minus" data-rv-key="${it.key}">−</button>
+            <span class="rv-qty">${it.qty}</span>
+            <button type="button" data-rv-act="plus" data-rv-key="${it.key}">+</button>
+          </div>
+          ${priceHtml}
+        </div>`;
+      }).join('')}
+    </div>
+    ${totalsHtml}`;
+
+  document.getElementById('priceCodeApplyBtn').onclick = ()=>{
+    if(activePriceCode){
+      activePriceCode = null;
+      renderReviewBody();
+      return;
+    }
+    const raw = document.getElementById('priceCodeInput').value.trim().toLowerCase();
+    if(raw === 'j123' || raw === 'm123'){
+      activePriceCode = raw;
+      renderReviewBody();
+    } else {
+      document.getElementById('priceCodeErr').innerHTML = '<p class="price-code-err">رمز غير صحيح</p>';
+    }
+  };
+
+  reviewBody.querySelectorAll('[data-rv-act]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.dataset.rvKey;
+      const cur = qty[key] || 0;
+      const next = btn.dataset.rvAct === 'plus' ? cur+1 : Math.max(0, cur-1);
+      qty[key] = next;
+      renderProducts(currentCat); // resyncs main grid + bottom summary
+      renderReviewBody();
+    };
+  });
+}
+
+confirmBtn.onclick = ()=>{
+  renderReviewBody();
   reviewModal.classList.add('show');
 };
 document.getElementById('closeReview').onclick = ()=> reviewModal.classList.remove('show');
@@ -1419,6 +1580,22 @@ document.getElementById('sendWaBtn').onclick = ()=>{
   msg += `مصدر الشراء: ${[...selectedSources].join('، ')}\n\n`;
   msg += `المنتجات المطلوبة:\n`;
   items.forEach(it => { msg += `- ${it.label} × ${it.qty}\n`; });
+
+  if(activePriceCode){
+    let totalOriginal = 0, totalFinal = 0;
+    items.forEach(it=>{
+      const price = getUnitPrice(it.pid);
+      if(price){ totalOriginal += price.original*it.qty; totalFinal += price.final*it.qty; }
+    });
+    if(activePriceCode === 'j123'){
+      msg += `\nرمز الأسعار المستخدم: جذور (j123)\n`;
+      msg += `المجموع قبل الخصم: ${totalOriginal.toLocaleString()} د.ع\n`;
+      msg += `المجموع بعد خصم 10%: ${totalFinal.toLocaleString()} د.ع (شرط الدفع خلال 30 يوم)\n`;
+    } else {
+      msg += `\nرمز الأسعار المستخدم: مذاخر (m123)\n`;
+      msg += `المجموع التقريبي: ${totalFinal.toLocaleString()} د.ع\n`;
+    }
+  }
 
   const url = `https://wa.me/9647901313860?text=${encodeURIComponent(msg)}`;
   window.open(url, '_blank');
