@@ -215,9 +215,9 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .rv-stepper button{width:28px; height:28px; font-size:16px; font-weight:800; color:var(--teal-light);}
 .rv-stepper button:active{background:var(--teal); color:#fff;}
 .rv-stepper .rv-qty{width:30px; text-align:center; font-weight:800; font-size:.82rem;}
-.rv-price{font-size:.78rem; color:var(--silver-mid); text-align:left; direction:ltr; flex-shrink:0; min-width:92px;}
-.rv-price .rv-orig{text-decoration:line-through; color:rgba(255,255,255,.35); margin-left:6px;}
-.rv-price .rv-final{color:var(--teal-light); font-weight:800;}
+.rv-price{font-size:.78rem; text-align:left; direction:ltr; flex-shrink:0; display:flex; flex-direction:column; gap:2px; min-width:92px;}
+.rv-price .rv-orig{color:var(--silver); font-weight:600;}
+.rv-price .rv-final{color:#3ecf8e; font-weight:800;}
 .rv-total{
   margin-top:14px; padding:12px 14px; border-radius:12px; background:rgba(224,48,80,.1);
   border:1px solid rgba(224,48,80,.3); font-size:.85rem; display:flex; flex-direction:column; gap:6px;
@@ -1521,8 +1521,8 @@ function renderReviewBody(){
         const price = activePriceCode ? getUnitPrice(it.pid) : null;
         const priceHtml = price
           ? (activePriceCode === 'j123'
-              ? `<div class="rv-price"><span class="rv-orig">${price.original.toLocaleString()}</span><span class="rv-final">${price.final.toLocaleString()}</span></div>`
-              : `<div class="rv-price"><span class="rv-final">${price.final.toLocaleString()}</span></div>`)
+              ? `<div class="rv-price"><span class="rv-orig">قبل: ${price.original.toLocaleString()}</span><span class="rv-final">بعد الخصم: ${price.final.toLocaleString()}</span></div>`
+              : `<div class="rv-price"><span class="rv-final">${price.final.toLocaleString()} د.ع</span></div>`)
           : '';
         return `
         <div class="rv-row">
