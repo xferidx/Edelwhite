@@ -307,10 +307,10 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .mgr-toggle.out-stock{background:rgba(224,48,80,.18); color:var(--teal-light); border-color:var(--teal);}
 
 /* manager login modal */
-.mgr-modal .code-input{
-  width:100%; padding:16px; border-radius:12px; border:1px solid var(--glass-border);
-  background:rgba(255,255,255,.06); color:#fff; font-size:1.4rem; text-align:center;
-  letter-spacing:.5em; font-family:var(--font-en); margin-bottom:14px;
+.login-input{
+  width:100%; padding:13px 16px; border-radius:10px; border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.06); color:#fff; font-size:.88rem; text-align:right;
+  font-family:var(--font-ar); margin-bottom:12px;
 }
 .mgr-modal .err{color:var(--teal-light); font-size:.75rem; text-align:center; margin-bottom:10px; display:none;}
 .mgr-modal .err.show{display:block;}
@@ -353,6 +353,11 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .stock-stepper input[type=text]{
   width:52px; text-align:center; padding:5px 2px; border:none; border-radius:0;
   background:transparent; color:#fff; font-family:var(--font-en); font-weight:800; font-size:.85rem;
+}
+.stock-view-only{
+  min-width:52px; text-align:center; padding:6px 12px; border-radius:9px;
+  background:rgba(255,255,255,.05); border:1px solid var(--glass-border);
+  color:#fff; font-family:var(--font-en); font-weight:800; font-size:.85rem;
 }
 .stock-updated{
   font-size:.72rem; color:var(--silver-mid); text-align:center; margin-top:16px; padding-top:12px;
@@ -421,15 +426,15 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
       <span class="sub">طلبات الجملة — فرع كربلاء</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button class="mgr-btn" id="mgrBtn">⚙️ الإدارة</button>
+      <button class="mgr-btn" id="mgrBtn">🔐 تسجيل الدخول</button>
       <a class="back-link" href="https://xferidx.github.io/Edelwhite/">الموقع الرئيسي ↩</a>
     </div>
   </div>
   <div class="mgr-bar" id="mgrBar">
-    <span>🔓 وضع الإدارة مفعّل — اضغط على أي منتج لتغيير حالة توفره</span>
+    <span id="mgrBarLabel">🔓 مسجّل دخول</span>
     <div style="display:flex; align-items:center; gap:8px;">
       <button class="stocks-btn-mgr" id="stocksBtn">📦 المخزون</button>
-      <button class="stocks-btn-mgr" id="orderImgBtn">🖼️ صورة طلب</button>
+      <button class="stocks-btn-mgr" id="orderImgBtn" style="display:none;">🖼️ صورة طلب</button>
       <button id="mgrExit">خروج</button>
     </div>
   </div>
@@ -511,10 +516,11 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 <div class="modal-bg" id="mgrModal">
   <div class="modal mgr-modal" style="max-width:380px;">
     <button class="close" id="closeMgr">✕</button>
-    <h3>دخول وضع الإدارة</h3>
-    <p style="font-size:.78rem;color:var(--silver-mid);margin-bottom:16px;">أدخل رمز الإدارة لتفعيل/تعطيل توفر المنتجات</p>
-    <input type="password" inputmode="numeric" class="code-input" id="mgrCode" maxlength="4" placeholder="••••">
-    <p class="err" id="mgrErr">الرمز غير صحيح، حاول مرة أخرى</p>
+    <h3>تسجيل الدخول</h3>
+    <p style="font-size:.78rem;color:var(--silver-mid);margin-bottom:16px;">للمسؤول صلاحية كاملة، وللمشاهد عرض المخزون فقط بدون تعديل</p>
+    <input type="email" class="login-input" id="loginEmail" placeholder="البريد الإلكتروني" autocomplete="username">
+    <input type="password" class="login-input" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password">
+    <p class="err" id="mgrErr">فشل تسجيل الدخول — تأكد من البريد وكلمة المرور</p>
     <button class="confirm-btn" id="mgrSubmit">دخول</button>
   </div>
 </div>
@@ -683,9 +689,10 @@ const STOCK_ITEMS = STOCK_ITEM_IDS.map(id => {
 });
 const STOCK_CAT_LABELS = { toothpaste:'Toothpastes', mouthwash:'Mouthwashes', brush:'Brushes', floss:'Flosses', device:'Tongue Cleaner' };
 
-/* ---------- manager mode ---------- */
-const MGR_CODE = "5422";
-let isManager = false;
+/* ---------- authentication (admin / viewer roles) ---------- */
+let isManager = false;   // true only for role 'admin' — controls edit rights everywhere
+let isViewer = false;    // true for role 'viewer' — read-only access to Stocks
+let currentRole = null;  // null | 'admin' | 'viewer'
 let outOfStock = new Set();
 let firebaseReady = false; // set true by the Firebase script below if it loads successfully
 
@@ -708,42 +715,82 @@ function toggleStock(id){
 
 const mgrBtn = document.getElementById('mgrBtn');
 const mgrBar = document.getElementById('mgrBar');
+const mgrBarLabel = document.getElementById('mgrBarLabel');
 const mgrModal = document.getElementById('mgrModal');
-const mgrCode = document.getElementById('mgrCode');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
 const mgrErr = document.getElementById('mgrErr');
 
 mgrBtn.onclick = ()=>{
-  if(isManager){ exitManager(); return; }
+  if(currentRole){
+    if(window.__authLogout) window.__authLogout();
+    return;
+  }
   mgrModal.classList.add('show');
-  mgrCode.value = '';
+  loginEmail.value = '';
+  loginPassword.value = '';
   mgrErr.classList.remove('show');
-  setTimeout(()=>mgrCode.focus(), 200);
+  setTimeout(()=>loginEmail.focus(), 200);
 };
 document.getElementById('closeMgr').onclick = ()=> mgrModal.classList.remove('show');
-document.getElementById('mgrSubmit').onclick = tryMgrLogin;
-mgrCode.addEventListener('keydown', e=>{ if(e.key === 'Enter') tryMgrLogin(); });
+document.getElementById('mgrSubmit').onclick = tryLogin;
+[loginEmail, loginPassword].forEach(inp=>{
+  inp.addEventListener('keydown', e=>{ if(e.key === 'Enter') tryLogin(); });
+});
 
-function tryMgrLogin(){
-  if(mgrCode.value.trim() === MGR_CODE){
-    isManager = true;
-    mgrModal.classList.remove('show');
-    mgrBtn.classList.add('on');
-    mgrBtn.textContent = '⚙️ وضع الإدارة';
-    mgrBar.classList.add('show');
-    renderProducts(currentCat);
-  } else {
+async function tryLogin(){
+  if(!window.__authLogin){
+    mgrErr.textContent = 'غير متصل بالخادم — تأكد من اتصال الإنترنت وأعد فتح الصفحة';
     mgrErr.classList.add('show');
-    mgrCode.value = '';
+    return;
   }
+  const email = loginEmail.value.trim();
+  const pass = loginPassword.value;
+  if(!email || !pass){
+    mgrErr.textContent = 'أدخل البريد وكلمة المرور';
+    mgrErr.classList.add('show');
+    return;
+  }
+  const submitBtn = document.getElementById('mgrSubmit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'جارٍ الدخول...';
+  try{
+    await window.__authLogin(email, pass);
+    mgrModal.classList.remove('show');
+    // __onAuthStateChange fires automatically and updates the UI
+  } catch(e){
+    mgrErr.textContent = 'فشل تسجيل الدخول — تأكد من البريد وكلمة المرور';
+    mgrErr.classList.add('show');
+  }
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'دخول';
 }
-function exitManager(){
-  isManager = false;
-  mgrBtn.classList.remove('on');
-  mgrBtn.textContent = '⚙️ الإدارة';
-  mgrBar.classList.remove('show');
+document.getElementById('mgrExit').onclick = ()=>{ if(window.__authLogout) window.__authLogout(); };
+
+// Called by the Firebase module whenever the login state changes
+// role is null (logged out / no account), 'admin', or 'viewer'
+window.__onAuthStateChange = function(role, email){
+  currentRole = role;
+  isManager = role === 'admin';
+  isViewer = role === 'viewer';
+  const loggedIn = isManager || isViewer;
+
+  mgrBtn.textContent = loggedIn ? '🚪 تسجيل الخروج' : '🔐 تسجيل الدخول';
+  mgrBtn.classList.toggle('on', loggedIn);
+  mgrBar.classList.toggle('show', loggedIn);
+
+  if(isManager) mgrBarLabel.textContent = '🔓 مسجّل دخول كمسؤول — صلاحية كاملة';
+  else if(isViewer) mgrBarLabel.textContent = '👁️ مسجّل دخول كمشاهد — عرض المخزون فقط';
+  else mgrBarLabel.textContent = '';
+
+  document.getElementById('orderImgBtn').style.display = isManager ? 'inline-block' : 'none';
+  document.getElementById('stocksBtn').style.display = loggedIn ? 'inline-block' : 'none';
+
   renderProducts(currentCat);
-}
-document.getElementById('mgrExit').onclick = exitManager;
+  if(document.getElementById('stockModal').classList.contains('show') && typeof renderStockList === 'function' && currentStockSource){
+    renderStockList();
+  }
+};
 
 /* ---------- stocks panel ---------- */
 const stocksBtn = document.getElementById('stocksBtn');
@@ -793,7 +840,7 @@ function selectStockSource(key, label, btnEl){
   }
   stockWarning.classList.remove('show');
   stockListArea.innerHTML = '<p class="stock-empty-hint">جارٍ التحميل...</p>';
-  saveStockBtn.style.display = 'block';
+  saveStockBtn.style.display = isManager ? 'block' : 'none';
   shareStockImgBtn.style.display = 'block';
 
   stockUnsub = window.__subscribeStockSource(key, (data)=>{
@@ -819,17 +866,25 @@ function renderStockList(){
       lastSub = null;
     }
     const val = (stockData.items && stockData.items[p.id] != null) ? stockData.items[p.id] : 0;
-    html += `
-      <div class="stock-row"${p.sub ? ' style="margin-inline-start:18px;"' : ''}>
-        <span class="sname"${p.color ? (p.color==='mix' ? ' style="background:conic-gradient(from 0deg,#c7c8ce,#ff8a3d,#ff3366,#2f9bff,#ffd400,#3ecf8e,#c7c8ce);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;"' : ` style="color:${p.color};"`) : ''}>${p.nameEn}</span>
+    const stepperHtml = isManager ? `
         <div class="stock-stepper">
           <button type="button" class="stock-minus" data-id="${p.id}">−</button>
           <input type="text" inputmode="numeric" id="stockqty-${p.id}" value="${val}">
           <button type="button" class="stock-plus" data-id="${p.id}">+</button>
-        </div>
+        </div>` : `
+        <div class="stock-view-only">${val}</div>`;
+    html += `
+      <div class="stock-row"${p.sub ? ' style="margin-inline-start:18px;"' : ''}>
+        <span class="sname"${p.color ? (p.color==='mix' ? ' style="background:conic-gradient(from 0deg,#c7c8ce,#ff8a3d,#ff3366,#2f9bff,#ffd400,#3ecf8e,#c7c8ce);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;"' : ` style="color:${p.color};"`) : ''}>${p.nameEn}</span>
+        ${stepperHtml}
       </div>`;
   });
   stockListArea.innerHTML = html;
+
+  if(!isManager){
+    stockUpdatedLine.style.marginTop = '10px';
+    // no edit handlers needed for viewers — nothing else to wire up
+  } else {
 
   stockListArea.querySelectorAll('.stock-plus, .stock-minus').forEach(btn=>{
     btn.onclick = ()=>{
@@ -848,6 +903,8 @@ function renderStockList(){
     };
     selectAllOnFocus(inp);
   });
+
+  }
 
   if(stockData.updatedAt && typeof stockData.updatedAt.toDate === 'function'){
     const d = stockData.updatedAt.toDate();
@@ -1653,8 +1710,10 @@ renderProducts('all');
 (async () => {
   try {
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-    const { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } =
+    const { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } =
       await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } =
+      await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
 
     const firebaseConfig = {
       apiKey: "AIzaSyAVunCAbZV8tiG-RConUCx_Ra7b-pljnps",
@@ -1667,6 +1726,28 @@ renderProducts('all');
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    /* --- authentication: real accounts with roles (admin / viewer) ---
+       Each user's role is looked up from a Firestore doc at roles/{uid}.
+       Accounts + roles are set up manually in Firebase Console — see setup notes. --- */
+    window.__authLogin = (email, password) => signInWithEmailAndPassword(auth, email, password);
+    window.__authLogout = () => signOut(auth);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        if (window.__onAuthStateChange) window.__onAuthStateChange(null, null);
+        return;
+      }
+      try {
+        const roleSnap = await getDoc(doc(db, "roles", user.uid));
+        const role = roleSnap.exists() ? roleSnap.data().role : null;
+        if (window.__onAuthStateChange) window.__onAuthStateChange(role, user.email);
+      } catch (e) {
+        console.error("role lookup failed:", e);
+        if (window.__onAuthStateChange) window.__onAuthStateChange(null, user.email);
+      }
+    });
 
     /* --- out-of-stock (per product, shared across all sources) --- */
     const stockRef = doc(db, "karbala", "stock");
