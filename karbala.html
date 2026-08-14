@@ -266,13 +266,14 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .install-app-btn.show{ display: flex; }
 .fab{
   flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  padding:9px 4px; border-radius:12px; font-size:.68rem; font-weight:700; border:1px solid var(--glass-border);
-  color:#fff;
+  padding:8px 3px; border-radius:12px; font-size:.62rem; font-weight:700; border:1px solid var(--glass-border);
+  color:#fff; text-align:center;
 }
-.fab .num{font-size:.6rem; font-weight:500; color:var(--silver-mid); direction:ltr;}
-.fab.call{background:linear-gradient(135deg,var(--teal),#8b0000); border-color:transparent;}
+.fab .num{font-size:.55rem; font-weight:500; color:var(--silver-mid); direction:ltr;}
 .fab.wa{background:linear-gradient(135deg,#25d366,#128c7e); border-color:transparent;}
+.fab.wa-rep{background:linear-gradient(135deg,#25d366,#128c7e); border-color:transparent;}
 .fab.doc{background:rgba(255,255,255,.08);}
+.fab.cat{background:linear-gradient(135deg,var(--teal),#c02040); border-color:transparent; color:#fff;}
 
 /* manager button + badge */
 .mgr-btn{
@@ -490,9 +491,10 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 <button class="install-app-btn" id="installAppBtn">📲 ثبّت التطبيق</button>
 
 <div class="fab-bar">
-  <a class="fab call" href="tel:+9647702714286">📞 اتصال مباشر<span class="num">0770 271 4286</span></a>
   <a class="fab wa" href="https://wa.me/9647901313860" target="_blank" rel="noopener">💬 واتساب الطلبات<span class="num">0790 131 3860</span></a>
   <a class="fab doc" href="https://xferidx.github.io/Dr.ferid.clinic/" target="_blank" rel="noopener">🦷 د. فريد مؤيد<span class="num">صفحة العيادة</span></a>
+  <a class="fab wa-rep" href="https://wa.me/9647775455799" target="_blank" rel="noopener">💬 Murtadha Ahmed<span class="num">Medical Representative</span></a>
+  <a class="fab cat" href="https://bayt-almarjan.com/wp-content/uploads/2026/07/%D9%83%D8%AA%D9%84%D9%88%D9%83-1.pdf" target="_blank" rel="noopener">📄 الكتالوج</a>
 </div>
 
 <div class="modal-bg" id="reviewModal">
@@ -693,6 +695,7 @@ const STOCK_CAT_LABELS = { toothpaste:'Toothpastes', mouthwash:'Mouthwashes', br
 let isManager = false;   // true only for role 'admin' — controls edit rights everywhere
 let isViewer = false;    // true for role 'viewer' — read-only access to Stocks
 let currentRole = null;  // null | 'admin' | 'viewer'
+let isAuthenticated = false; // true whenever Firebase login succeeded, regardless of role
 let outOfStock = new Set();
 let firebaseReady = false; // set true by the Firebase script below if it loads successfully
 
@@ -722,7 +725,7 @@ const loginPassword = document.getElementById('loginPassword');
 const mgrErr = document.getElementById('mgrErr');
 
 mgrBtn.onclick = ()=>{
-  if(currentRole){
+  if(isAuthenticated){
     if(window.__authLogout) window.__authLogout();
     return;
   }
@@ -771,16 +774,19 @@ document.getElementById('mgrExit').onclick = ()=>{ if(window.__authLogout) windo
 // role is null (logged out / no account), 'admin', or 'viewer'
 window.__onAuthStateChange = function(role, email){
   currentRole = role;
+  isAuthenticated = !!email;
   isManager = role === 'admin';
   isViewer = role === 'viewer';
   const loggedIn = isManager || isViewer;
+  const authenticatedNoRole = isAuthenticated && !loggedIn; // Firebase login worked, but no roles/{uid} doc found
 
-  mgrBtn.textContent = loggedIn ? '🚪 تسجيل الخروج' : '🔐 تسجيل الدخول';
-  mgrBtn.classList.toggle('on', loggedIn);
-  mgrBar.classList.toggle('show', loggedIn);
+  mgrBtn.textContent = loggedIn || authenticatedNoRole ? '🚪 تسجيل الخروج' : '🔐 تسجيل الدخول';
+  mgrBtn.classList.toggle('on', loggedIn || authenticatedNoRole);
+  mgrBar.classList.toggle('show', loggedIn || authenticatedNoRole);
 
   if(isManager) mgrBarLabel.textContent = '🔓 مسجّل دخول كمسؤول — صلاحية كاملة';
   else if(isViewer) mgrBarLabel.textContent = '👁️ مسجّل دخول كمشاهد — عرض المخزون فقط';
+  else if(authenticatedNoRole) mgrBarLabel.textContent = '⚠️ تم الدخول لكن هذا الحساب بدون صلاحية محددة — راجع إعداد roles في Firestore';
   else mgrBarLabel.textContent = '';
 
   document.getElementById('orderImgBtn').style.display = isManager ? 'inline-block' : 'none';
