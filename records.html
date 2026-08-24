@@ -62,8 +62,8 @@
         /* Pinned-patient cards keep a fixed light-blue background in both modes, so their text
            needs fixed dark colors too — otherwise the global dark-mode text override (meant for
            dark-background cards) turns the name/ID near-invisible against that light background. */
-        .pinned-card-text { color: #1e3a8a !important; }
-        .pinned-card-subtext { color: #1d4ed8 !important; }
+        #pinned-patients-list p.pinned-card-text { color: #1e3a8a !important; }
+        #pinned-patients-list p.pinned-card-subtext { color: #1d4ed8 !important; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -483,6 +483,7 @@
 
         window.allPatients = [];
         window.currentDetailPatientId = null;
+        window.pinnedQueue = []; // ordered array of pinned patient IDs
 
         // Safety net: if anything unexpected throws anywhere on this page, show it instead of
         // leaving buttons that silently appear to do nothing.
@@ -625,6 +626,15 @@
                     renderMaterialsModalLists();
                 }
             }, (error) => console.error('Materials Sync Error:', error));
+
+            // Ordered reception queue: a single shared array of patient IDs, so staff can reorder
+            // it with one atomic write instead of touching every patient document.
+            const pinnedQueueRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinic_state', 'pinned_queue');
+            onSnapshot(pinnedQueueRef, (snap) => {
+                window.pinnedQueue = snap.exists() ? (snap.data().order || []) : [];
+                renderPinnedPatients();
+                if (window.currentDetailPatientId) window.refreshDetailView();
+            }, (error) => console.error('Pinned Queue Sync Error:', error));
         }
 
         window.syncDarkModeIcon = window.syncDarkModeIcon || function() {};
@@ -725,40 +735,69 @@
 
         // Pinned patients: manually toggled by staff, not date-based — stay pinned until someone
         // unpins them, so a patient stays one tap away all day without needing to search.
-        // Text inside uses fixed .pinned-card-text/.pinned-card-subtext colors (defined in <style>)
-        // instead of text-slate-800/500, since this card's light-blue background never changes with
-        // dark mode, but the global dark-mode override for text-slate-800 would otherwise turn the
-        // text nearly invisible against it.
+        // Order is a single shared array (clinic_state/pinned_queue) rather than a per-patient
+        // flag, so staff can reorder the whole reception line with one atomic write and everyone
+        // sees the same order live. Text inside uses fixed .pinned-card-text/.pinned-card-subtext
+        // colors (defined in <style>) instead of text-slate-800/500, since this card's light-blue
+        // background never changes with dark mode, but the global dark-mode override for
+        // text-slate-800 would otherwise turn the text nearly invisible against it.
         function renderPinnedPatients() {
             const section = document.getElementById('pinned-patients-section');
             const container = document.getElementById('pinned-patients-list');
-            const pinned = window.allPatients.filter(p => p.pinned);
+            const queue = window.pinnedQueue || [];
+            const pinned = queue.map(id => window.allPatients.find(p => p.id === id)).filter(Boolean);
             if (pinned.length === 0) {
                 section.classList.add('hidden');
                 return;
             }
             section.classList.remove('hidden');
-            container.innerHTML = pinned.map(p => `
-                <div class="bg-clinic-light border-2 border-clinic/30 rounded-xl px-3 py-2.5 flex items-center justify-between gap-2">
+            container.innerHTML = pinned.map((p, i) => `
+                <div class="bg-clinic-light border-2 border-clinic/30 rounded-xl px-3 py-2.5 flex items-center gap-2">
+                    <span class="pinned-card-subtext font-black text-xs w-5 flex-shrink-0 text-center">${i + 1}</span>
                     <button onclick="window.openPatientDetail('${p.id}')" class="text-left flex-grow min-w-0">
                         <p class="pinned-card-text font-black text-sm truncate">${escapeHtml(p.name)}</p>
                         <p class="pinned-card-subtext text-[11px] font-bold">${p.patientId ? 'ID: ' + escapeHtml(p.patientId) : ''}</p>
                     </button>
-                    <button onclick="window.togglePin('${p.id}')" class="text-clinic hover:text-red-500 flex-shrink-0 p-1" title="Unpin"><i class="fa-solid fa-thumbtack"></i></button>
+                    <div class="flex flex-col flex-shrink-0">
+                        <button onclick="window.movePinned('${p.id}', -1)" ${i === 0 ? 'disabled' : ''} class="pinned-card-text px-1.5 py-0.5 hover:bg-clinic/20 rounded disabled:opacity-25 disabled:cursor-not-allowed" title="Move up"><i class="fa-solid fa-chevron-up text-xs"></i></button>
+                        <button onclick="window.movePinned('${p.id}', 1)" ${i === pinned.length - 1 ? 'disabled' : ''} class="pinned-card-text px-1.5 py-0.5 hover:bg-clinic/20 rounded disabled:opacity-25 disabled:cursor-not-allowed" title="Move down"><i class="fa-solid fa-chevron-down text-xs"></i></button>
+                    </div>
+                    <button onclick="window.togglePin('${p.id}')" class="text-clinic hover:text-red-500 flex-shrink-0 p-1" title="Unpin — finished with this patient"><i class="fa-solid fa-thumbtack"></i></button>
                 </div>
             `).join('');
         }
 
-        window.togglePin = async function(patientId) {
-            const p = window.allPatients.find(x => x.id === patientId);
-            if (!p || !db) return;
+        window.isPinned = function(patientId) {
+            return (window.pinnedQueue || []).includes(patientId);
+        };
+
+        async function savePinnedQueue(newQueue) {
             try {
-                const patientRef = doc(db, 'artifacts', appId, 'public', 'data', 'patient_records', p.id);
-                await setDoc(patientRef, { pinned: !p.pinned, updatedAt: serverTimestamp() }, { merge: true });
+                const queueRef = doc(db, 'artifacts', appId, 'public', 'data', 'clinic_state', 'pinned_queue');
+                await setDoc(queueRef, { order: newQueue, updatedAt: serverTimestamp() });
             } catch (e) {
                 console.error(e);
-                window.showMessage('Failed', 'Could not update pin. Please try again.', 'error');
+                window.showMessage('Failed', 'Could not update the pinned list. Please try again.', 'error');
             }
+        }
+
+        window.togglePin = async function(patientId) {
+            if (!db) return;
+            const queue = [...(window.pinnedQueue || [])];
+            const idx = queue.indexOf(patientId);
+            if (idx === -1) queue.push(patientId); // pin: joins at the back of the line
+            else queue.splice(idx, 1); // unpin: finished with this patient
+            await savePinnedQueue(queue);
+        };
+
+        window.movePinned = async function(patientId, direction) {
+            if (!db) return;
+            const queue = [...(window.pinnedQueue || [])];
+            const idx = queue.indexOf(patientId);
+            const newIdx = idx + direction;
+            if (idx === -1 || newIdx < 0 || newIdx >= queue.length) return;
+            [queue[idx], queue[newIdx]] = [queue[newIdx], queue[idx]];
+            await savePinnedQueue(queue);
         };
 
         window.searchPatients = function() {
@@ -799,7 +838,7 @@
                         <p class="font-black text-slate-800">${escapeHtml(p.name)}</p>
                         <p class="text-xs text-slate-500 font-bold mt-0.5">${p.patientId ? 'ID: ' + escapeHtml(p.patientId) : 'No ID'} ${p.phone ? ' · ' + escapeHtml(p.phone) : ''}</p>
                     </button>
-                    <button onclick="window.togglePin('${p.id}')" class="flex-shrink-0 p-2 ${p.pinned ? 'text-clinic' : 'text-slate-300 hover:text-clinic'}" title="${p.pinned ? 'Unpin' : 'Pin'}"><i class="fa-solid fa-thumbtack"></i></button>
+                    <button onclick="window.togglePin('${p.id}')" class="flex-shrink-0 p-2 ${window.isPinned(p.id) ? 'text-clinic' : 'text-slate-300 hover:text-clinic'}" title="${window.isPinned(p.id) ? 'Unpin' : 'Pin'}"><i class="fa-solid fa-thumbtack"></i></button>
                 </div>
             `).join('');
         }
@@ -899,7 +938,7 @@
             document.getElementById('detail-patient-phone').textContent = p.phone ? 'Phone: ' + p.phone : 'No phone on file';
 
             const pinBtn = document.getElementById('detail-pin-btn');
-            if (p.pinned) {
+            if (window.isPinned(p.id)) {
                 pinBtn.classList.add('bg-clinic-light', 'text-clinic');
                 pinBtn.classList.remove('text-slate-300');
                 pinBtn.title = 'Unpin patient';
