@@ -412,6 +412,35 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .modal h3{font-size:1.05rem; font-weight:900; margin-bottom:14px;}
 .modal .close{float:left; font-size:20px; color:var(--silver-mid);}
 .success-icon{font-size:44px; text-align:center; margin-bottom:10px;}
+
+/* compact layout v2 */
+.grid{grid-template-columns:repeat(3,1fr); gap:8px;}
+.card{border-radius:12px;}
+.card.ef-card{grid-column:1/-1;}
+.card .img-wrap{height:92px;}
+.card.ef-card .img-wrap{height:150px;}
+.card .body{padding:8px 8px 9px; gap:6px;}
+.card.ef-card .body{padding:12px 14px 14px;}
+.pname{font-size:.7rem; line-height:1.25;}
+.pname-en{font-size:.52rem; line-height:1.2;}
+.card.ef-card .pname{font-size:.92rem;}
+.card.ef-card .pname-en{font-size:.64rem;}
+.cat-badge{top:5px; right:5px; padding:2px 6px; font-size:.45rem;}
+.stepper{border-radius:8px;}
+.stepper button{width:26px; height:30px; font-size:16px;}
+.stepper input{font-size:13px; min-width:0;}
+.mgr-toggle{font-size:.52rem !important; padding:5px 2px !important; line-height:1.25;}
+.oos-tag{font-size:.5rem !important; padding:2px 6px !important;}
+main{padding:14px 10px 8px;}
+.hero{padding:22px 0 14px;}
+.hero p{font-size:.78rem; line-height:1.6;}
+.cat-btn{margin-top:8px; padding:5px 12px; font-size:.7rem; border-radius:5px; gap:4px;}
+.fab-bar{padding:4px 8px calc(4px + env(safe-area-inset-bottom));}
+.fab-label{font-size:.5rem; margin-bottom:3px;}
+.fab-row{gap:4px;}
+.fab{padding:5px 2px; font-size:.56rem; border-radius:5px; white-space:nowrap; letter-spacing:-.1px;}
+body{padding-bottom:58px !important;}
+.install-app-btn{bottom:52px !important;}
 </style>
 </head>
 <body>
@@ -1329,7 +1358,7 @@ function renderProducts(filter){
       const meta = CAT_META[p.cat];
       const isOOS = outOfStock.has(p.id);
       const card = document.createElement('div');
-      card.className = 'card' + (isOOS && !isManager ? ' oos' : '');
+      card.className = 'card' + (p.sizes ? ' ef-card' : '') + (isOOS && !isManager ? ' oos' : '');
       card.id = 'card-'+p.id;
 
       // if item goes out of stock, clear any pending quantity for it
