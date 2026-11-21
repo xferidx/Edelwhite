@@ -414,7 +414,11 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .success-icon{font-size:44px; text-align:center; margin-bottom:10px;}
 
 /* compact layout v2 */
-.grid{grid-template-columns:repeat(2,1fr); gap:10px;}
+.grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
+@media (max-width:640px){.grid{grid-template-columns:repeat(2,1fr); gap:10px;}}
+.card.ef-card{grid-column:1/-1;}
+.tabs .cat-btn{max-width:none;}
+@media (max-width:640px){
 .card{border-radius:12px;}
 .card.ef-card{grid-column:1/-1;}
 .card .img-wrap{height:120px;}
@@ -441,8 +445,15 @@ main{padding:14px 10px 8px;}
 .fab{padding:5px 2px; font-size:.56rem; border-radius:5px; white-space:nowrap; letter-spacing:-.1px;}
 body{padding-bottom:58px !important;}
 .install-app-btn{bottom:52px !important;}
+}
+
 .tabs .cat-btn{flex:1 1 22%; padding:7px 4px; font-size:.68rem; border-radius:7px; text-align:center; color:#fff; background:var(--c-bg); border:1px solid var(--c-bd); opacity:.75;}
 .tabs .cat-btn.active{opacity:1; background:var(--c-solid); border-color:#fff; box-shadow:0 0 0 1px #fff;}
+@media (min-width:641px){
+.tabs{flex-wrap:nowrap; max-width:1100px; margin:0 auto; padding:10px 18px;}
+.tabs .cat-btn{flex:1 1 0; padding:9px 10px; font-size:.82rem;}
+.tabs-wrap{position:sticky;}
+}
 </style>
 </head>
 <body>
