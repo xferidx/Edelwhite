@@ -24,7 +24,7 @@
 html{scroll-behavior:smooth;}
 body{
   font-family:var(--font-ar); background:var(--navy); color:var(--white);
-  direction:rtl; overflow-x:hidden; padding-bottom:92px;
+  direction:rtl; overflow-x:hidden; padding-bottom:78px;
 }
 img{max-width:100%;display:block;}
 a{text-decoration:none;color:inherit;}
@@ -239,13 +239,13 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 .fab-bar{
   position:fixed; bottom:0; inset-inline:0; z-index:50; background:rgba(26,8,8,.95);
   backdrop-filter:blur(20px); border-top:1px solid var(--glass-border);
-  display:flex; gap:8px; padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  display:flex; flex-wrap:wrap; padding:6px 10px calc(6px + env(safe-area-inset-bottom));
 }
 
 /* Install app (Add to Home Screen) floating button */
 .install-app-btn{
   position: fixed;
-  bottom: 84px;
+  bottom: 72px;
   left: 16px;
   display: none;
   align-items: center;
@@ -264,16 +264,14 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
   white-space: nowrap;
 }
 .install-app-btn.show{ display: flex; }
+.fab-label{font-size:.58rem; color:var(--silver-mid); font-weight:700; width:100%; text-align:center; letter-spacing:.3px; margin-bottom:5px;}
+.fab-row{display:flex; gap:6px; width:100%;}
 .fab{
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  padding:8px 3px; border-radius:12px; font-size:.62rem; font-weight:700; border:1px solid var(--glass-border);
-  color:#fff; text-align:center;
+  flex:1; display:flex; align-items:center; justify-content:center;
+  padding:6px 4px; border-radius:6px; font-size:.64rem; font-weight:700; border:1px solid var(--glass-border);
+  color:#fff; text-align:center; background:rgba(255,255,255,.08); line-height:1.3;
 }
-.fab .num{font-size:.55rem; font-weight:500; color:var(--silver-mid); direction:ltr;}
-.fab.wa{background:linear-gradient(135deg,#25d366,#128c7e); border-color:transparent;}
-.fab.wa-rep{background:linear-gradient(135deg,#25d366,#128c7e); border-color:transparent;}
-.fab.doc{background:rgba(255,255,255,.08);}
-.fab.cat{background:linear-gradient(135deg,var(--teal),#c02040); border-color:transparent; color:#fff;}
+.cat-btn{display:inline-flex; align-items:center; gap:6px; margin-top:14px; padding:9px 18px; border-radius:6px; background:linear-gradient(135deg,var(--teal),#c02040); color:#fff; font-weight:800; font-size:.85rem; text-decoration:none;}
 
 /* manager button + badge */
 .mgr-btn{
@@ -446,6 +444,7 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
     <span class="tag">للصيدليات وعيادات الأسنان فقط</span>
     <h1>اطلب منتجات edel+white بالجملة</h1>
     <p>اختر الكميات المطلوبة، وحدد من أين تفضّل الشراء، وسنستلم طلبك مباشرة على واتساب لتأكيده وتجهيزه.</p>
+    <a class="cat-btn" href="https://bayt-almarjan.com/wp-content/uploads/2026/07/%D9%83%D8%AA%D9%84%D9%88%D9%83-1.pdf" target="_blank" rel="noopener">📄 الكتالوج</a>
   </div>
 </section>
 
@@ -491,10 +490,12 @@ input:focus{outline:2px solid var(--teal); border-color:transparent;}
 <button class="install-app-btn" id="installAppBtn">📲 ثبّت التطبيق</button>
 
 <div class="fab-bar">
-  <a class="fab wa" href="https://wa.me/9647901313860" target="_blank" rel="noopener">💬 واتساب الطلبات<span class="num">0790 131 3860</span></a>
-  <a class="fab doc" href="https://xferidx.github.io/Dr.ferid.clinic/" target="_blank" rel="noopener">🦷 د. فريد مؤيد<span class="num">صفحة العيادة</span></a>
-  <a class="fab wa-rep" href="https://wa.me/9647882283090" target="_blank" rel="noopener">💬 Murtadha Ahmed<span class="num">Medical Representative</span></a>
-  <a class="fab cat" href="https://bayt-almarjan.com/wp-content/uploads/2026/07/%D9%83%D8%AA%D9%84%D9%88%D9%83-1.pdf" target="_blank" rel="noopener">📄 الكتالوج</a>
+  <div class="fab-label">روابط مفيدة</div>
+  <div class="fab-row">
+    <a class="fab" href="https://xferidx.github.io/Dr.ferid.clinic/" target="_blank" rel="noopener">🦷 د. فريد مؤيد</a>
+    <a class="fab" href="http://www.dardoor.net" target="_blank" rel="noopener">🏠 سوق العقارات بالعراق</a>
+    <a class="fab" href="https://xferidx.github.io/Shamsiastore/#home" target="_blank" rel="noopener">☀️ سوق الطاقة الشمسية</a>
+  </div>
 </div>
 
 <div class="modal-bg" id="reviewModal">
